@@ -73,4 +73,7 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   warning) and History tab (date range, bucketed charts, CSV/Excel export).
   History pages through /readings (no date filter in API), capped at 20k
   readings with a warning. Gaps in data break chart lines.
-- Next: phase 4 (TNB bill upload and results).
+- Phase 4 done: TNB Bill tab (multi-PDF upload, parsed fields with
+  "couldn't read" for nulls, avg kWh, tariff, monthly kWh chart, view PDF).
+  No bill delete: no backend endpoint.
+- Next: phase 5 (benchmark comparison).

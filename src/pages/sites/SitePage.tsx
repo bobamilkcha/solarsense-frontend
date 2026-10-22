@@ -11,6 +11,7 @@ const SITE_TABS = [
   { to: '', label: 'Overview', end: true },
   { to: 'live', label: 'Live Data', end: false },
   { to: 'history', label: 'History', end: false },
+  { to: 'bills', label: 'TNB Bill', end: false },
 ]
 
 function tabClass({ isActive }: { isActive: boolean }) {
