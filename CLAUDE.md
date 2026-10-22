@@ -58,4 +58,11 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
 - Update the "Status" section below after each phase.
 
 ## Status
-- Scaffold created (Vite react-ts). Nothing else built yet.
+- Phase 1 done: Tailwind v4, strict TS, axios client with single-flight
+  refresh (Web Lock across tabs), in-memory session store, protected/guest
+  routes, login / register / accept-invite / logout, app layout.
+- Regenerate API types with `npm run gen:api` (runs openapi-typescript with
+  its own TS 5, since it doesn't support the project's TS 6).
+- Live polling uses 30 s (`LIVE_POLL_INTERVAL_MS` in src/config.ts), per
+  docs/FRONTEND.md.
+- Next: phase 2 (projects list/create, sites + device pairing, team page).
