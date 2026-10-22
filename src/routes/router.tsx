@@ -6,6 +6,7 @@ import { RegisterPage } from '../pages/auth/RegisterPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
+import { BenchmarkTab } from '../pages/sites/benchmark/BenchmarkTab'
 import { BillsTab } from '../pages/sites/bills/BillsTab'
 import { HistoryTab } from '../pages/sites/history/HistoryTab'
 import { LiveDataTab } from '../pages/sites/live/LiveDataTab'
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
               { path: 'live', element: <LiveDataTab /> },
               { path: 'history', element: <HistoryTab /> },
               { path: 'bills', element: <BillsTab /> },
+              { path: 'benchmark', element: <BenchmarkTab /> },
             ],
           },
           { path: '/team', element: <TeamPage /> },

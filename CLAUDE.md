@@ -76,4 +76,8 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
 - Phase 4 done: TNB Bill tab (multi-PDF upload, parsed fields with
   "couldn't read" for nulls, avg kWh, tariff, monthly kWh chart, view PDF).
   No bill delete: no backend endpoint.
-- Next: phase 5 (benchmark comparison).
+- Phase 5 done: Benchmark tab (month picker, ratio headline with shading
+  guide, device vs satellite chart + full table, opt-in 12-month view that
+  makes 12 requests). Satellite is PVGIS only; Solcast/Solargis not in API.
+  Ratio bands (>=0.9 good, >=0.7 some shading) are a frontend guide only.
+- Next: phase 6 (site visit checklist).
