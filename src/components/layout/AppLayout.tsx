@@ -6,7 +6,10 @@ import { cn } from '../../lib/cn'
 import { Logo } from '../Logo'
 import { Button } from '../ui/Button'
 
-const NAV_ITEMS = [{ to: '/projects', label: 'Projects' }]
+const NAV_ITEMS = [
+  { to: '/projects', label: 'Projects' },
+  { to: '/team', label: 'Team' },
+]
 
 function navClass({ isActive }: { isActive: boolean }) {
   return cn(

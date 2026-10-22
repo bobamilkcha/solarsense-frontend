@@ -4,7 +4,11 @@ import { AcceptInvitePage } from '../pages/auth/AcceptInvitePage'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { RegisterPage } from '../pages/auth/RegisterPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
-import { ProjectsPage } from '../pages/ProjectsPage'
+import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
+import { ProjectsPage } from '../pages/projects/ProjectsPage'
+import { OverviewTab } from '../pages/sites/OverviewTab'
+import { SitePage } from '../pages/sites/SitePage'
+import { TeamPage } from '../pages/team/TeamPage'
 import { GuestRoute } from './GuestRoute'
 import { ProtectedRoute } from './ProtectedRoute'
 
@@ -26,6 +30,13 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/projects" replace /> },
           { path: '/projects', element: <ProjectsPage /> },
+          { path: '/projects/:projectId', element: <ProjectDetailPage /> },
+          {
+            path: '/sites/:siteId',
+            element: <SitePage />,
+            children: [{ index: true, element: <OverviewTab /> }],
+          },
+          { path: '/team', element: <TeamPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
