@@ -13,6 +13,7 @@ import { LiveDataTab } from '../pages/sites/live/LiveDataTab'
 import { OverviewTab } from '../pages/sites/OverviewTab'
 import { VisitDetailPage } from '../pages/sites/visits/VisitDetailPage'
 import { VisitsTab } from '../pages/sites/visits/VisitsTab'
+import { ReportTab } from '../pages/sites/report/ReportTab'
 import { SitePage } from '../pages/sites/SitePage'
 import { TeamPage } from '../pages/team/TeamPage'
 import { GuestRoute } from './GuestRoute'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
               { path: 'benchmark', element: <BenchmarkTab /> },
               { path: 'visits', element: <VisitsTab /> },
               { path: 'visits/:visitId', element: <VisitDetailPage /> },
+              { path: 'report', element: <ReportTab /> },
             ],
           },
           { path: '/team', element: <TeamPage /> },

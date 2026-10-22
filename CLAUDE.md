@@ -84,4 +84,8 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   default/empty checklist), visit page (items by category, OK/Issue/N/A
   with tap-again-to-untick, value + notes saved on blur, add/remove items,
   complete/reopen, delete visit). Item updates are optimistic.
-- Next: phase 7 (feasibility report + PDF/Excel).
+- Phase 7 done: Report tab (assumptions form validated against the API
+  ranges, headline figures, shading source note, bill before/after chart,
+  monthly table, disclaimer). PDF built client-side with @react-pdf/renderer
+  (lazy-loaded chunk), Excel from /feasibility/xlsx.
+- Next: phase 8 (polish: states, responsive, bundle splitting).
