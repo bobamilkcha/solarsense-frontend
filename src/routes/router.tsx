@@ -11,6 +11,8 @@ import { BillsTab } from '../pages/sites/bills/BillsTab'
 import { HistoryTab } from '../pages/sites/history/HistoryTab'
 import { LiveDataTab } from '../pages/sites/live/LiveDataTab'
 import { OverviewTab } from '../pages/sites/OverviewTab'
+import { VisitDetailPage } from '../pages/sites/visits/VisitDetailPage'
+import { VisitsTab } from '../pages/sites/visits/VisitsTab'
 import { SitePage } from '../pages/sites/SitePage'
 import { TeamPage } from '../pages/team/TeamPage'
 import { GuestRoute } from './GuestRoute'
@@ -44,6 +46,8 @@ export const router = createBrowserRouter([
               { path: 'history', element: <HistoryTab /> },
               { path: 'bills', element: <BillsTab /> },
               { path: 'benchmark', element: <BenchmarkTab /> },
+              { path: 'visits', element: <VisitsTab /> },
+              { path: 'visits/:visitId', element: <VisitDetailPage /> },
             ],
           },
           { path: '/team', element: <TeamPage /> },

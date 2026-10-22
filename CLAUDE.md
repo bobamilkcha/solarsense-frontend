@@ -80,4 +80,8 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   guide, device vs satellite chart + full table, opt-in 12-month view that
   makes 12 requests). Satellite is PVGIS only; Solcast/Solargis not in API.
   Ratio bands (>=0.9 good, >=0.7 some shading) are a frontend guide only.
-- Next: phase 6 (site visit checklist).
+- Phase 6 done: Checklist tab (visits list with progress, start visit with
+  default/empty checklist), visit page (items by category, OK/Issue/N/A
+  with tap-again-to-untick, value + notes saved on blur, add/remove items,
+  complete/reopen, delete visit). Item updates are optimistic.
+- Next: phase 7 (feasibility report + PDF/Excel).
