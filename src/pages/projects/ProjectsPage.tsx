@@ -9,6 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../components/ui/States
 import { useProjects, useSites } from '../../hooks/useProjects'
 import { formatDate } from '../../lib/format'
 import { CreateProjectDialog } from './CreateProjectDialog'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 function ProjectCard({ project, siteCount }: { project: Project; siteCount: number | null }) {
   return (
@@ -43,6 +44,7 @@ export function ProjectsPage() {
   const projects = useProjects()
   const sites = useSites()
   const [creating, setCreating] = useState(false)
+  useDocumentTitle('Projects')
   const siteCounts = useMemo(() => countSitesByProject(sites.data), [sites.data])
 
   const sorted = useMemo(

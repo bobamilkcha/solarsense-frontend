@@ -88,4 +88,7 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   ranges, headline figures, shading source note, bill before/after chart,
   monthly table, disclaimer). PDF built client-side with @react-pdf/renderer
   (lazy-loaded chunk), Excel from /feasibility/xlsx.
-- Next: phase 8 (polish: states, responsive, bundle splitting).
+- Phase 8 done: lazy-loaded routes (main chunk 262 kB), route error page,
+  page titles, site overview summaries, nav highlight on site pages,
+  session kept on network errors during refresh, README.
+- Not yet verified in a browser or against the real backend.

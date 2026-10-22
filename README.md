@@ -1,75 +1,56 @@
-# React + TypeScript + Vite
+# SolarSense Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dashboard for SolarSense, an ESP32-based device for hyperlocal solar site
+assessment, used by Malaysian solar installers. Backend:
+[solarsense-backend](../solarsense-backend) (FastAPI).
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use the WSL (nvm) Node, not the Windows one.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+cp .env.example .env.local   # set VITE_API_URL if not http://localhost:8000
+npm run dev                  # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+The backend must allow the dev origin with credentials: add
+`http://localhost:5173` to its `BACKEND_CORS_ORIGINS`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Type-check and production build |
+| `npm run lint` | ESLint |
+| `npm run gen:api` | Regenerate `src/api/schema.d.ts` from `docs/openapi.json` |
+
+## Structure
 
 ```
+src/
+  api/          axios client (auth + refresh), typed functions per resource
+  auth/         in-memory session store, role helpers
+  hooks/        TanStack Query hooks
+  components/   UI pieces, charts, layout
+  pages/        auth, projects, sites (tabs), team
+  routes/       router (lazy-loaded pages), ProtectedRoute, GuestRoute
+```
+
+## Pages
+
+- Login, register (creates a company + admin), accept invite, logout
+- Projects list and create (admins), project page with its sites
+- Device pairing: create a site with the ESP32's `device_id` (admins)
+- Site tabs: Overview, Live Data (polls every 30 s), History (date range,
+  CSV/Excel export), TNB Bill (PDF upload), Benchmark (device vs PVGIS),
+  Checklist (site visits), Report (feasibility, PDF/Excel)
+- Team: roles, deactivate, invite links (admins)
+
+## Known backend gaps
+
+See `docs/FRONTEND.md`. Not built because the API has no endpoint:
+editing or deleting projects, sites and bills; re-pairing a device; date
+filters or aggregation on readings (History pages through raw readings,
+capped at 20,000); Solcast/Solargis benchmarks (PVGIS only).

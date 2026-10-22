@@ -12,6 +12,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../components/ui/States
 import { useInvitations, useRevokeInvitation, useUpdateUser, useUsers } from '../../hooks/useTeam'
 import { formatDate } from '../../lib/format'
 import { InviteDialog } from './InviteDialog'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 type EditableRole = 'installer' | 'company_admin'
 
@@ -87,6 +88,7 @@ export function TeamPage() {
   const users = useUsers()
   const invitations = useInvitations(admin)
   const [inviting, setInviting] = useState(false)
+  useDocumentTitle('Team')
 
   return (
     <>

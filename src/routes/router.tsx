@@ -1,59 +1,63 @@
 import { createBrowserRouter, Navigate } from 'react-router'
-import { AppLayout } from '../components/layout/AppLayout'
-import { AcceptInvitePage } from '../pages/auth/AcceptInvitePage'
-import { LoginPage } from '../pages/auth/LoginPage'
-import { RegisterPage } from '../pages/auth/RegisterPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
-import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
-import { ProjectsPage } from '../pages/projects/ProjectsPage'
-import { BenchmarkTab } from '../pages/sites/benchmark/BenchmarkTab'
-import { BillsTab } from '../pages/sites/bills/BillsTab'
-import { HistoryTab } from '../pages/sites/history/HistoryTab'
-import { LiveDataTab } from '../pages/sites/live/LiveDataTab'
-import { OverviewTab } from '../pages/sites/OverviewTab'
-import { VisitDetailPage } from '../pages/sites/visits/VisitDetailPage'
-import { VisitsTab } from '../pages/sites/visits/VisitsTab'
-import { ReportTab } from '../pages/sites/report/ReportTab'
-import { SitePage } from '../pages/sites/SitePage'
-import { TeamPage } from '../pages/team/TeamPage'
+import { FullPageLoader } from '../components/layout/FullPageLoader'
 import { GuestRoute } from './GuestRoute'
 import { ProtectedRoute } from './ProtectedRoute'
+import { RouteErrorPage } from './RouteErrorPage'
 
+// Each page is its own chunk, so the first load only pulls in what it needs.
 export const router = createBrowserRouter([
   {
-    element: <GuestRoute />,
-    children: [
-      { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
-    ],
-  },
-  // Public: invitees aren't logged in yet.
-  { path: '/accept-invite', element: <AcceptInvitePage /> },
-  {
-    element: <ProtectedRoute />,
+    errorElement: <RouteErrorPage />,
+    hydrateFallbackElement: <FullPageLoader />,
     children: [
       {
-        element: <AppLayout />,
+        element: <GuestRoute />,
         children: [
-          { index: true, element: <Navigate to="/projects" replace /> },
-          { path: '/projects', element: <ProjectsPage /> },
-          { path: '/projects/:projectId', element: <ProjectDetailPage /> },
+          { path: '/login', lazy: async () => ({ Component: (await import('../pages/auth/LoginPage')).LoginPage }) },
+          { path: '/register', lazy: async () => ({ Component: (await import('../pages/auth/RegisterPage')).RegisterPage }) },
+        ],
+      },
+      // Public: invitees aren't logged in yet.
+      {
+        path: '/accept-invite',
+        lazy: async () => ({ Component: (await import('../pages/auth/AcceptInvitePage')).AcceptInvitePage }),
+      },
+      {
+        element: <ProtectedRoute />,
+        children: [
           {
-            path: '/sites/:siteId',
-            element: <SitePage />,
+            lazy: async () => ({ Component: (await import('../components/layout/AppLayout')).AppLayout }),
             children: [
-              { index: true, element: <OverviewTab /> },
-              { path: 'live', element: <LiveDataTab /> },
-              { path: 'history', element: <HistoryTab /> },
-              { path: 'bills', element: <BillsTab /> },
-              { path: 'benchmark', element: <BenchmarkTab /> },
-              { path: 'visits', element: <VisitsTab /> },
-              { path: 'visits/:visitId', element: <VisitDetailPage /> },
-              { path: 'report', element: <ReportTab /> },
+              { index: true, element: <Navigate to="/projects" replace /> },
+              { path: '/projects', lazy: async () => ({ Component: (await import('../pages/projects/ProjectsPage')).ProjectsPage }) },
+              {
+                path: '/projects/:projectId',
+                lazy: async () => ({ Component: (await import('../pages/projects/ProjectDetailPage')).ProjectDetailPage }),
+              },
+              {
+                path: '/sites/:siteId',
+                lazy: async () => ({ Component: (await import('../pages/sites/SitePage')).SitePage }),
+                children: [
+                  { index: true, lazy: async () => ({ Component: (await import('../pages/sites/OverviewTab')).OverviewTab }) },
+                  { path: 'live', lazy: async () => ({ Component: (await import('../pages/sites/live/LiveDataTab')).LiveDataTab }) },
+                  { path: 'history', lazy: async () => ({ Component: (await import('../pages/sites/history/HistoryTab')).HistoryTab }) },
+                  { path: 'bills', lazy: async () => ({ Component: (await import('../pages/sites/bills/BillsTab')).BillsTab }) },
+                  {
+                    path: 'benchmark',
+                    lazy: async () => ({ Component: (await import('../pages/sites/benchmark/BenchmarkTab')).BenchmarkTab }),
+                  },
+                  { path: 'visits', lazy: async () => ({ Component: (await import('../pages/sites/visits/VisitsTab')).VisitsTab }) },
+                  {
+                    path: 'visits/:visitId',
+                    lazy: async () => ({ Component: (await import('../pages/sites/visits/VisitDetailPage')).VisitDetailPage }),
+                  },
+                  { path: 'report', lazy: async () => ({ Component: (await import('../pages/sites/report/ReportTab')).ReportTab }) },
+                ],
+              },
+              { path: '/team', lazy: async () => ({ Component: (await import('../pages/team/TeamPage')).TeamPage }) },
+              { path: '*', lazy: async () => ({ Component: (await import('../pages/NotFoundPage')).NotFoundPage }) },
             ],
           },
-          { path: '/team', element: <TeamPage /> },
-          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button'
 import { TextField } from '../../components/ui/TextField'
 import { useLogin } from '../../hooks/useAuth'
 import { redirectTarget } from '../../routes/redirect'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 function loginErrorMessage(error: unknown): string {
   const status = getErrorStatus(error)
@@ -21,6 +22,7 @@ export function LoginPage() {
   const loginMutation = useLogin()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  useDocumentTitle('Sign in')
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()

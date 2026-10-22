@@ -11,6 +11,7 @@ import { useProject, useProjectSites } from '../../hooks/useProjects'
 import { formatDate } from '../../lib/format'
 import { NotFoundPage } from '../NotFoundPage'
 import { PairDeviceDialog } from './PairDeviceDialog'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 function SiteRow({ site }: { site: Site }) {
   return (
@@ -38,6 +39,7 @@ export function ProjectDetailPage() {
   const project = useProject(projectId)
   const sites = useProjectSites(projectId)
   const [pairing, setPairing] = useState(false)
+  useDocumentTitle(project.data?.name)
 
   if (project.isPending) return <LoadingState label="Loading project…" />
   if (project.isError) {

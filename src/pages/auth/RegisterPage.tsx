@@ -6,6 +6,7 @@ import { Alert } from '../../components/ui/Alert'
 import { Button } from '../../components/ui/Button'
 import { TextField } from '../../components/ui/TextField'
 import { useRegister } from '../../hooks/useAuth'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -14,6 +15,7 @@ export function RegisterPage() {
   const registerMutation = useRegister()
   const [form, setForm] = useState({ company_name: '', first_name: '', last_name: '', email: '', password: '' })
   const [touched, setTouched] = useState(false)
+  useDocumentTitle('Create account')
 
   const passwordTooShort = form.password.length > 0 && form.password.length < MIN_PASSWORD_LENGTH
   const canSubmit =

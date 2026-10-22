@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { API_URL } from '../config'
 import { session } from '../auth/session'
 import type { AuthResponse } from './types'
@@ -75,9 +75,11 @@ api.interceptors.response.use(
     config._retried = true
     try {
       await refreshSession()
-    } catch {
-      // Refresh failed: the user is logged out. ProtectedRoute sends them to /login.
-      session.signOut()
+    } catch (refreshError) {
+      // Only a rejected refresh means "logged out" (ProtectedRoute then sends them to /login).
+      // A network blip (patchy signal onsite) keeps the session so the next request can retry.
+      const status = isAxiosError(refreshError) ? refreshError.response?.status : undefined
+      if (status === 401 || status === 403) session.signOut()
       return Promise.reject(error)
     }
     return api(config)

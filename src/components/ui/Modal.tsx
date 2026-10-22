@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 type ModalProps = {
   open: boolean
@@ -11,6 +11,7 @@ type ModalProps = {
 /** Accessible modal built on the native <dialog> element (focus trap and Esc for free). */
 export function Modal({ open, title, onClose, children, footer }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
 
   useEffect(() => {
     const dialog = ref.current
@@ -28,12 +29,12 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         onClose()
       }}
       className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl p-0 shadow-xl backdrop:bg-slate-950/50"
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
     >
       {open && (
         <div className="flex max-h-[90vh] flex-col">
           <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
-            <h2 id="modal-title" className="text-lg font-semibold text-slate-900">
+            <h2 id={titleId} className="text-lg font-semibold text-slate-900">
               {title}
             </h2>
             <button

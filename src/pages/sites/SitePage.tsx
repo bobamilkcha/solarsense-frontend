@@ -6,6 +6,7 @@ import { useProject, useSite } from '../../hooks/useProjects'
 import { cn } from '../../lib/cn'
 import { NotFoundPage } from '../NotFoundPage'
 import type { SiteContext } from './siteContext'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 const SITE_TABS = [
   { to: '', label: 'Overview', end: true },
@@ -28,6 +29,7 @@ export function SitePage() {
   const { siteId = '' } = useParams()
   const site = useSite(siteId)
   const project = useProject(site.data?.project_id ?? '')
+  useDocumentTitle(site.data?.name)
 
   if (site.isPending) return <LoadingState label="Loading site…" />
   if (site.isError) return <ErrorState error={site.error} title="Couldn't load this site" onRetry={() => site.refetch()} />

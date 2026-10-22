@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, useLocation, useNavigation } from 'react-router'
 import { ROLE_LABELS, displayName } from '../../auth/roles'
 import { useCurrentUser } from '../../auth/useSession'
 import { useLogout } from '../../hooks/useAuth'
@@ -7,11 +7,12 @@ import { Logo } from '../Logo'
 import { Button } from '../ui/Button'
 
 const NAV_ITEMS = [
-  { to: '/projects', label: 'Projects' },
-  { to: '/team', label: 'Team' },
+  // Sites live under projects, so keep "Projects" highlighted on site pages.
+  { to: '/projects', label: 'Projects', alsoActive: '/sites/' },
+  { to: '/team', label: 'Team', alsoActive: null },
 ]
 
-function navClass({ isActive }: { isActive: boolean }) {
+function navClass(isActive: boolean) {
   return cn(
     'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
     isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white',
@@ -21,9 +22,14 @@ function navClass({ isActive }: { isActive: boolean }) {
 export function AppLayout() {
   const user = useCurrentUser()
   const logoutMutation = useLogout()
+  const { pathname } = useLocation()
+  const navigating = useNavigation().state === 'loading'
 
   return (
     <div className="flex min-h-screen flex-col">
+      {navigating && (
+        <div className="fixed inset-x-0 top-0 z-50 h-0.5 animate-pulse bg-amber-400" role="progressbar" aria-label="Loading page" />
+      )}
       <header className="bg-slate-900 text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
           <Link to="/projects" className="flex items-center gap-2 font-semibold">
@@ -32,7 +38,13 @@ export function AppLayout() {
           </Link>
           <nav className="order-last flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto" aria-label="Main">
             {NAV_ITEMS.map((item) => (
-              <NavLink key={item.to} to={item.to} className={navClass}>
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  navClass(isActive || (item.alsoActive !== null && pathname.startsWith(item.alsoActive)))
+                }
+              >
                 {item.label}
               </NavLink>
             ))}
