@@ -7,7 +7,11 @@ import { cn } from '../../lib/cn'
 import { NotFoundPage } from '../NotFoundPage'
 import type { SiteContext } from './siteContext'
 
-const SITE_TABS = [{ to: '', label: 'Overview', end: true }]
+const SITE_TABS = [
+  { to: '', label: 'Overview', end: true },
+  { to: 'live', label: 'Live Data', end: false },
+  { to: 'history', label: 'History', end: false },
+]
 
 function tabClass({ isActive }: { isActive: boolean }) {
   return cn(

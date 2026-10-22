@@ -6,6 +6,8 @@ import { RegisterPage } from '../pages/auth/RegisterPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
+import { HistoryTab } from '../pages/sites/history/HistoryTab'
+import { LiveDataTab } from '../pages/sites/live/LiveDataTab'
 import { OverviewTab } from '../pages/sites/OverviewTab'
 import { SitePage } from '../pages/sites/SitePage'
 import { TeamPage } from '../pages/team/TeamPage'
@@ -34,7 +36,11 @@ export const router = createBrowserRouter([
           {
             path: '/sites/:siteId',
             element: <SitePage />,
-            children: [{ index: true, element: <OverviewTab /> }],
+            children: [
+              { index: true, element: <OverviewTab /> },
+              { path: 'live', element: <LiveDataTab /> },
+              { path: 'history', element: <HistoryTab /> },
+            ],
           },
           { path: '/team', element: <TeamPage /> },
           { path: '*', element: <NotFoundPage /> },

@@ -69,4 +69,8 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   device pairing (= create site with device_id, admin), site page shell with
   tabs at /sites/:siteId, team page (roles, deactivate, invite links).
   Project/site edit and delete are NOT built: no backend endpoints.
-- Next: phase 3 (Live Data + History tabs, charts, CSV export).
+- Phase 3 done: Live Data tab (latest cards, polled charts, stale-device
+  warning) and History tab (date range, bucketed charts, CSV/Excel export).
+  History pages through /readings (no date filter in API), capped at 20k
+  readings with a warning. Gaps in data break chart lines.
+- Next: phase 4 (TNB bill upload and results).
