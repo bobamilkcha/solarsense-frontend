@@ -63,8 +63,8 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   routes, login / register / accept-invite / logout, app layout.
 - Regenerate API types with `npm run gen:api` (runs openapi-typescript with
   its own TS 5, since it doesn't support the project's TS 6).
-- Live polling uses 30 s (`LIVE_POLL_INTERVAL_MS` in src/config.ts), per
-  docs/FRONTEND.md.
+- Live polling uses 5 s (`LIVE_POLL_INTERVAL_MS` in src/config.ts); docs/FRONTEND.md
+  suggests 30-60 s, but each poll only fetches the newest 50 readings and merges.
 - Phase 2 done: projects list + create (admin), project page with sites,
   device pairing (= create site with device_id, admin), site page shell with
   tabs at /sites/:siteId, team page (roles, deactivate, invite links).

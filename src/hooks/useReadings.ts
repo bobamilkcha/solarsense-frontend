@@ -1,14 +1,42 @@
 import { useState } from 'react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listReadings, listReadingsInRange } from '../api/readings'
+import type { SensorReading } from '../api/types'
 import { LIVE_POLL_INTERVAL_MS } from '../config'
 import { queryKeys } from './queryKeys'
 
-/** Most recent readings, re-fetched on an interval for the live view. */
+/** Readings fetched per poll once the first full load is done. */
+const POLL_PAGE_SIZE = 50
+/** Cap on readings kept in memory by the live poll. */
+const LIVE_KEEP = 3000
+
+/**
+ * Most recent readings for the live view. The first load fetches a full page;
+ * each poll after that only asks for the newest few and merges them in, so a
+ * short poll interval stays cheap. If the tab was idle long enough to miss
+ * more readings than one small page holds, it falls back to a full fetch.
+ */
 export function useLiveReadings(siteId: string, limit = 1000) {
+  const queryClient = useQueryClient()
+  const queryKey = [...queryKeys.readings(siteId), 'live', limit]
   return useQuery({
-    queryKey: [...queryKeys.readings(siteId), 'live', limit],
-    queryFn: () => listReadings(siteId, limit),
+    queryKey,
+    queryFn: async () => {
+      const previous = queryClient.getQueryData<SensorReading[]>(queryKey)
+      if (!previous || previous.length === 0) return listReadings(siteId, limit)
+
+      const newestKnown = Math.max(...previous.map((r) => Date.parse(r.device_timestamp)))
+      let fresh = await listReadings(siteId, POLL_PAGE_SIZE)
+      const oldestFresh = Math.min(...fresh.map((r) => Date.parse(r.device_timestamp)))
+      // The small page didn't reach back to what we already have: readings were missed.
+      if (fresh.length === POLL_PAGE_SIZE && oldestFresh > newestKnown) fresh = await listReadings(siteId, limit)
+
+      const byId = new Map(previous.map((r) => [r.id, r]))
+      for (const r of fresh) byId.set(r.id, r)
+      return [...byId.values()]
+        .sort((a, b) => Date.parse(b.device_timestamp) - Date.parse(a.device_timestamp))
+        .slice(0, LIVE_KEEP)
+    },
     refetchInterval: LIVE_POLL_INTERVAL_MS,
     refetchIntervalInBackground: false,
     staleTime: 0,

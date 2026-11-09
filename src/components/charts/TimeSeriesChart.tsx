@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { formatDate, formatDateTime, formatNumber, formatTime } from '../../lib/format'
 import type { SeriesPoint } from '../../lib/timeseries'
+import { type ChartBenchmark, colorAt, gradientStops, MINIMUM_LINE_COLOR, REFERENCE_LINE_COLOR } from './benchmarks'
 import { CHART, SERIES } from './chartTheme'
 import { ChartTooltipBox } from './ChartTooltip'
 
@@ -18,6 +19,8 @@ type TimeSeriesChartProps = {
   color?: string
   /** Enables drag-to-zoom: called with the selected time range (ms). */
   onZoom?: (from: number, to: number) => void
+  /** Draws the reference line(s) and colors the line by how good each value is. */
+  benchmark?: ChartBenchmark
 }
 
 // Plot area insets: the Y axis width and the chart's right margin, used to map the cursor to a time.
@@ -36,7 +39,9 @@ export function TimeSeriesChart({
   domain,
   color = SERIES[1],
   onZoom,
+  benchmark,
 }: TimeSeriesChartProps) {
+  const gradientId = useId()
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
   // A point with a gap on both sides has no line to draw, so show it as a dot.
   const isolated = useMemo(() => {
@@ -94,6 +99,23 @@ export function TimeSeriesChart({
     )
   }
 
+  const extent = useMemo(() => {
+    let min = Infinity
+    let max = -Infinity
+    for (const p of points) {
+      if (p.value === null) continue
+      min = Math.min(min, p.value)
+      max = Math.max(max, p.value)
+    }
+    return min <= max ? { min, max } : null
+  }, [points])
+  // A flat line has no vertical extent for a gradient, so it falls back to one color.
+  const gradient = benchmark && extent && extent.max > extent.min ? gradientStops(benchmark.stops, extent.min, extent.max) : null
+  const flatColor = benchmark && extent && extent.max === extent.min ? colorAt(benchmark.stops, extent.min) : null
+  const strokeColor = gradient ? `url(#${gradientId})` : (flatColor ?? color)
+  // Keep the reference lines on the chart even when every reading is below them.
+  const yTop = benchmark ? Math.max(benchmark.reference.value, benchmark.minimum?.value ?? 0) : 0
+
   const labelToTime = (label: unknown) => (typeof label === 'number' ? label : null)
 
   function finishDrag() {
@@ -130,7 +152,17 @@ export function TimeSeriesChart({
             axisLine={{ stroke: CHART.grid }}
             minTickGap={48}
           />
+          {gradient && (
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                {gradient.map((g, i) => (
+                  <stop key={i} offset={g.offset} stopColor={g.color} />
+                ))}
+              </linearGradient>
+            </defs>
+          )}
           <YAxis
+            domain={benchmark ? [0, (dataMax: number) => Math.max(dataMax, yTop)] : undefined}
             width={Y_AXIS_WIDTH}
             tick={{ fill: CHART.axis, fontSize: 11 }}
             tickLine={false}
@@ -138,18 +170,35 @@ export function TimeSeriesChart({
             tickFormatter={(v: number) => formatNumber(v, 0)}
           />
           {drag && <ReferenceArea x1={drag.from} x2={drag.to} fill={color} fillOpacity={0.15} stroke={color} strokeOpacity={0.4} />}
+          {benchmark?.minimum && (
+            <ReferenceLine
+              y={benchmark.minimum.value}
+              stroke={MINIMUM_LINE_COLOR}
+              strokeDasharray="6 4"
+              strokeOpacity={0.7}
+              label={{ value: benchmark.minimum.label, position: 'insideBottomRight', fill: MINIMUM_LINE_COLOR, fontSize: 11 }}
+            />
+          )}
+          {benchmark && (
+            <ReferenceLine
+              y={benchmark.reference.value}
+              stroke={REFERENCE_LINE_COLOR}
+              strokeWidth={2}
+              label={{ value: benchmark.reference.label, position: 'insideTopRight', fill: '#a16207', fontSize: 11 }}
+            />
+          )}
           <Tooltip content={renderTooltip} cursor={{ stroke: CHART.crosshair, strokeWidth: 1 }} isAnimationActive={false} />
           <Line
             type="monotone"
             dataKey="value"
-            stroke={color}
+            stroke={strokeColor}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
             dot={(props: { cx?: number; cy?: number; payload?: SeriesPoint; index?: number }) => {
               const { cx, cy, payload, index } = props
               if (cx == null || cy == null || !payload || !isolated.has(payload.t)) return <g key={index} />
-              return <circle key={index} cx={cx} cy={cy} r={3} fill={color} />
+              return <circle key={index} cx={cx} cy={cy} r={3} fill={benchmark && payload.value !== null ? colorAt(benchmark.stops, payload.value) : color} />
             }}
             activeDot={{ r: 4, stroke: CHART.surface, strokeWidth: 2, fill: color }}
             connectNulls={false}

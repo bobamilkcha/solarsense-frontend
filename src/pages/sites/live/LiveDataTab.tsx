@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { SensorReading } from '../../../api/types'
 import { ChartCard } from '../../../components/charts/ChartCard'
+import { IRRADIANCE_BENCHMARK, TEMPERATURE_BENCHMARK } from '../../../components/charts/benchmarks'
 import { TimeSeriesChart } from '../../../components/charts/TimeSeriesChart'
 import { ReadingsTable } from '../../../components/ReadingsTable'
 import { StatTile } from '../../../components/StatTile'
@@ -51,6 +52,58 @@ function formatInterval(ms: number): string {
   if (ms >= 60 * 60_000) return `${+(ms / (60 * 60_000)).toFixed(1)} h`
   if (ms >= 60_000) return `${+(ms / 60_000).toFixed(1)} min`
   return `${Math.round(ms / 1000)} s`
+}
+
+/** Rule-of-thumb bands, not a standard. */
+function humidityLevel(percent: number): { label: string; tone: 'good' | 'fair' | 'high' } {
+  if (percent < 60) return { label: 'Low to moderate', tone: 'good' }
+  if (percent <= 80) return { label: 'Moderate to high', tone: 'fair' }
+  return { label: 'High', tone: 'high' }
+}
+
+const HUMIDITY_TONE = { good: 'text-green-700', fair: 'text-orange-600', high: 'text-red-600' } as const
+
+function HumidityNote({ humidity }: { humidity: number }) {
+  const level = humidityLevel(humidity)
+  return (
+    <details className="rounded-xl bg-white p-4 text-sm shadow-sm ring-1 ring-slate-200">
+      <summary className="cursor-pointer font-medium text-slate-900">
+        Why humidity matters:{' '}
+        <span className={HUMIDITY_TONE[level.tone]}>
+          {formatNumber(humidity, 0)}% now ({level.label.toLowerCase()})
+        </span>
+      </summary>
+      <div className="mt-3 space-y-2 text-slate-600">
+        <p>
+          Humidity doesn't change panel output much on its own, but it points to site risks that matter over the
+          system's life:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <strong>Less sunlight:</strong> humid air and haze scatter some sunlight, so irradiance is a little lower
+            than on a dry day with the same sun.
+          </li>
+          <li>
+            <strong>Dew and condensation:</strong> overnight moisture on the glass and in junction boxes. It rinses
+            some dust off but can leave dirty films that block light.
+          </li>
+          <li>
+            <strong>Corrosion and degradation:</strong> long periods above about 80% speed up corrosion of connectors
+            and frames and can contribute to potential-induced degradation (PID). Worth choosing sealed connectors and
+            checking the module's humidity rating.
+          </li>
+          <li>
+            <strong>Cooling:</strong> humid, rainy conditions often come with cloud, but damp air and rain keep panels
+            cooler, which helps efficiency.
+          </li>
+        </ul>
+        <p className="text-xs text-slate-500">
+          Rule of thumb: under 60% is low concern, 60–80% moderate, over 80% high. A tropical site like Malaysia is
+          often humid, so look at the average and how long it stays high, not a single reading.
+        </p>
+      </div>
+    </details>
+  )
 }
 
 function LatestCards({ latest }: { latest: SensorReading }) {
@@ -213,16 +266,22 @@ export function LiveDataTab() {
       </div>
 
       <ChartCard title="Irradiance (W/m²)" subtitle={`${windowed.length} readings · ${span}`}>
-        <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={260} domain={view} onZoom={applyZoom} />
+        <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={260} domain={view} benchmark={IRRADIANCE_BENCHMARK} onZoom={applyZoom} />
       </ChartCard>
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title="Ambient temperature (°C)">
-          <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={view} onZoom={applyZoom} />
+          <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={view} benchmark={TEMPERATURE_BENCHMARK} onZoom={applyZoom} />
         </ChartCard>
         <ChartCard title="Humidity (%)">
           <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={view} onZoom={applyZoom} />
         </ChartCard>
       </div>
+      <HumidityNote humidity={latest.humidity} />
+      <p className="text-xs text-slate-500">
+        Irradiance: yellow line is full sun (1000 W/m²), the dashed red line is a 200 W/m² minimum; the line turns from
+        red to green as sun gets stronger, and stays grey at night. Temperature: yellow line is the 25 °C panel rating;
+        hotter than that costs output, so the line turns red above it. These are rule-of-thumb guides.
+      </p>
       <p className="text-xs text-slate-500">Scroll over a chart to zoom, or drag across it to select a range. Breaks in a line mean the device sent no data for that period.</p>
 
       <div>

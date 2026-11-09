@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { getErrorMessage } from '../../../api/errors'
 import { exportReadings, type ExportFormat } from '../../../api/readings'
 import { ChartCard } from '../../../components/charts/ChartCard'
+import { IRRADIANCE_BENCHMARK, TEMPERATURE_BENCHMARK } from '../../../components/charts/benchmarks'
 import { TimeSeriesChart } from '../../../components/charts/TimeSeriesChart'
 import { ReadingsTable } from '../../../components/ReadingsTable'
 import { StatTile } from '../../../components/StatTile'
@@ -123,11 +124,11 @@ export function HistoryTab() {
             title="Irradiance (W/m²)"
             subtitle={sorted.length > 500 ? 'Averaged into time buckets for display' : undefined}
           >
-            <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={280} domain={domain} />
+            <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={280} domain={domain} benchmark={IRRADIANCE_BENCHMARK} />
           </ChartCard>
           <div className="grid gap-5 lg:grid-cols-2">
             <ChartCard title="Ambient temperature (°C)">
-              <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={domain} />
+              <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={domain} benchmark={TEMPERATURE_BENCHMARK} />
             </ChartCard>
             <ChartCard title="Humidity (%)">
               <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={domain} />
