@@ -96,4 +96,15 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   GET /devices/unpaired by sticker code, PUT/DELETE /sites/:id/device).
   "Add a site" no longer asks for a device ID. Live/History use roll, pitch
   and tilt_deg instead of tilt_x/y/z.
+- Phase 10 done: admin-only Device settings panel on the site Overview tab
+  (GET/PUT /devices/{id}/config: online/fw/last seen, publish interval,
+  Pending/Applied, polls every 3 s only while pending). Readings sensor
+  fields (ambient_temp, humidity, roll, pitch, heading, tilt_deg) can be null:
+  shown as "—", skipped in chart averages (gaps, not zero).
+- Phase 11 done: Survey tab (record spots with phone GPS + 120 s dwell,
+  per-spot 0-100 score, ranked list, Leaflet map, drift re-check, editable
+  weights). Spots live in localStorage until the backend adds endpoints:
+  see docs/BACKEND_SURVEY_SPEC.md. Mobile pass: 16px inputs (no iOS zoom),
+  44px+ touch targets, full-width checklist status buttons, dvh modals.
+  Dev proxy in vite.config.ts (VITE_API_URL=/api) for phone/tunnel use.
 - Not yet verified in a browser or against the real backend.

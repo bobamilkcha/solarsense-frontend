@@ -16,7 +16,7 @@ import { compassDirection, sortReadings, toIntervalSeries, toSeriesWithGaps } fr
 import { useSiteContext } from '../siteContext'
 
 const SELECT_CLASS =
-  'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
+  'rounded-lg border border-slate-300 bg-white min-h-11 px-3 py-1.5 text-base text-slate-900 sm:min-h-0 sm:text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
 
 const STALE_AFTER_MS = 15 * 60_000
 
@@ -63,15 +63,19 @@ function humidityLevel(percent: number): { label: string; tone: 'good' | 'fair' 
 
 const HUMIDITY_TONE = { good: 'text-green-700', fair: 'text-orange-600', high: 'text-red-600' } as const
 
-function HumidityNote({ humidity }: { humidity: number }) {
-  const level = humidityLevel(humidity)
+function HumidityNote({ humidity }: { humidity: number | null }) {
+  const level = humidity === null ? null : humidityLevel(humidity)
   return (
     <details className="rounded-xl bg-white p-4 text-sm shadow-sm ring-1 ring-slate-200">
       <summary className="cursor-pointer font-medium text-slate-900">
         Why humidity matters:{' '}
-        <span className={HUMIDITY_TONE[level.tone]}>
-          {formatNumber(humidity, 0)}% now ({level.label.toLowerCase()})
-        </span>
+        {level ? (
+          <span className={HUMIDITY_TONE[level.tone]}>
+            {formatNumber(humidity, 0)}% now ({level.label.toLowerCase()})
+          </span>
+        ) : (
+          <span className="text-slate-500">no reading right now</span>
+        )}
       </summary>
       <div className="mt-3 space-y-2 text-slate-600">
         <p>
@@ -126,7 +130,7 @@ function LatestCards({ latest }: { latest: SensorReading }) {
       <StatTile
         label="Heading"
         value={formatNumber(latest.heading, 0)}
-        unit={`° ${compassDirection(latest.heading)}`}
+        unit={latest.heading === null ? '°' : `° ${compassDirection(latest.heading)}`}
         detail="Compass direction"
       />
     </div>

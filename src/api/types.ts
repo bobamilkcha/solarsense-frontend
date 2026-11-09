@@ -36,3 +36,6 @@ export type ChecklistItemCreateRequest = Schemas['ChecklistItemCreateRequest']
 export type ChecklistItemUpdateRequest = Schemas['ChecklistItemUpdateRequest']
 
 export type UnpairedDevice = Schemas['DeviceResponse']
+
+export type DeviceConfig = Schemas['DeviceConfigResponse']
+export type DeviceConfigRequest = Schemas['DeviceConfigRequest']

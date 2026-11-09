@@ -51,6 +51,7 @@ export const router = createBrowserRouter([
                     path: 'visits/:visitId',
                     lazy: async () => ({ Component: (await import('../pages/sites/visits/VisitDetailPage')).VisitDetailPage }),
                   },
+                  { path: 'survey', lazy: async () => ({ Component: (await import('../pages/sites/survey/SurveyTab')).SurveyTab }) },
                   { path: 'report', lazy: async () => ({ Component: (await import('../pages/sites/report/ReportTab')).ReportTab }) },
                 ],
               },

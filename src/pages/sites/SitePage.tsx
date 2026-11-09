@@ -20,12 +20,13 @@ const SITE_TABS = [
   { to: 'bills', label: 'TNB Bill', end: false },
   { to: 'benchmark', label: 'Benchmark', end: false },
   { to: 'visits', label: 'Checklist', end: false },
+  { to: 'survey', label: 'Survey', end: false },
   { to: 'report', label: 'Report', end: false },
 ]
 
 function tabClass({ isActive }: { isActive: boolean }) {
   return cn(
-    'whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium transition-colors',
+    'whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors',
     isActive ? 'border-amber-500 text-amber-700' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
   )
 }

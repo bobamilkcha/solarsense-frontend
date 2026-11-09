@@ -229,6 +229,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/devices/{device_id}/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Device Config
+         * @description Requested config and what the device reports it is using.
+         *
+         *     `synced` is false while a requested change has not been confirmed by the
+         *     device's status message; poll this until it flips to true.
+         */
+        get: operations["get_device_config_devices__device_id__config_get"];
+        /**
+         * Set Device Config
+         * @description Request a new publish interval (5-3600 s). Retained, so an offline device gets it later.
+         */
+        put: operations["set_device_config_devices__device_id__config_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sites/{site_id}/device": {
         parameters: {
             query?: never;
@@ -677,6 +704,36 @@ export interface components {
             /** Effective Rate Rm Per Kwh */
             effective_rate_rm_per_kwh: number | null;
         };
+        /** DesiredConfig */
+        DesiredConfig: {
+            /**
+             * Publish Interval S
+             * @description Requested interval; null if never set
+             */
+            publish_interval_s: number | null;
+            /** Requested At */
+            requested_at: string | null;
+        };
+        /** DeviceConfigRequest */
+        DeviceConfigRequest: {
+            /**
+             * Publish Interval S
+             * @description Seconds between readings, 5-3600 (the device rejects values outside this)
+             */
+            publish_interval_s: number;
+        };
+        /** DeviceConfigResponse */
+        DeviceConfigResponse: {
+            /** Device Id */
+            device_id: string;
+            desired: components["schemas"]["DesiredConfig"];
+            reported: components["schemas"]["ReportedStatus"];
+            /**
+             * Synced
+             * @description True when nothing is pending (no request, or device confirms it)
+             */
+            synced: boolean;
+        };
         /** DeviceResponse */
         DeviceResponse: {
             /** Device Id */
@@ -908,6 +965,27 @@ export interface components {
              */
             created_at: string;
         };
+        /** ReportedStatus */
+        ReportedStatus: {
+            /** Online */
+            online: boolean;
+            /**
+             * Fw
+             * @description Firmware version from the last status message
+             */
+            fw: string | null;
+            /**
+             * Publish Interval S
+             * @description What the device is actually using
+             */
+            publish_interval_s: number | null;
+            /**
+             * Last Seen At
+             * Format: date-time
+             * @description Last time the device published anything
+             */
+            last_seen_at: string;
+        };
         /** SensorReadingResponse */
         SensorReadingResponse: {
             /**
@@ -925,15 +1003,15 @@ export interface components {
             /** Cell Current */
             cell_current: number;
             /** Ambient Temp */
-            ambient_temp: number;
+            ambient_temp: number | null;
             /** Humidity */
-            humidity: number;
+            humidity: number | null;
             /** Roll */
-            roll: number;
+            roll: number | null;
             /** Pitch */
-            pitch: number;
+            pitch: number | null;
             /** Heading */
-            heading: number;
+            heading: number | null;
             /** Rssi */
             rssi: number | null;
             /**
@@ -956,9 +1034,9 @@ export interface components {
              * @description Angle of the device from horizontal, combining roll and pitch.
              *
              *     0 is lying flat; this is the panel tilt angle when the device is
-             *     mounted flush on a panel.
+             *     mounted flush on a panel. Null if the orientation sensor failed.
              */
-            readonly tilt_deg: number;
+            readonly tilt_deg: number | null;
         };
         /** ShadingSummary */
         ShadingSummary: {
@@ -1650,6 +1728,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeviceResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_device_config_devices__device_id__config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceConfigResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_device_config_devices__device_id__config_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceConfigResponse"];
                 };
             };
             /** @description Validation Error */

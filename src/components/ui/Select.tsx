@@ -14,7 +14,7 @@ export function Select({ label, hideLabel, className, id, children, ...rest }: S
       <select
         id={inputId}
         className={cn(
-          'block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500',
+          'block w-full rounded-lg border border-slate-300 bg-white min-h-11 px-3 py-2 text-base shadow-sm sm:min-h-0 sm:text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500',
           !hideLabel && 'mt-1',
         )}
         {...rest}

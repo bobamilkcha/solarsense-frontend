@@ -32,15 +32,15 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
       aria-labelledby={titleId}
     >
       {open && (
-        <div className="flex max-h-[90vh] flex-col">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
+        <div className="flex max-h-[90dvh] flex-col">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-6">
             <h2 id={titleId} className="text-lg font-semibold text-slate-900">
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="-m-1 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="-m-2 rounded-md p-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               aria-label="Close"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -48,8 +48,8 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
               </svg>
             </button>
           </div>
-          <div className="overflow-y-auto px-6 py-5">{children}</div>
-          {footer && <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">{footer}</div>}
+          <div className="overflow-y-auto px-4 py-5 sm:px-6">{children}</div>
+          {footer && <div className="flex flex-col-reverse gap-2 border-t border-slate-200 px-4 py-4 sm:flex-row sm:justify-end sm:px-6 [&>button]:w-full sm:[&>button]:w-auto">{footer}</div>}
         </div>
       )}
     </dialog>

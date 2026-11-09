@@ -53,7 +53,7 @@ function DeviceForm({ site, onDone }: { site: Site; onDone: () => void }) {
         <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg ring-1 ring-slate-200" role="radiogroup" aria-label="Unpaired devices">
           {devices.data.map((d) => (
             <li key={d.device_id}>
-              <label className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-amber-50/50">
+              <label className="flex min-h-14 cursor-pointer items-center gap-3 px-4 py-3 hover:bg-amber-50/50">
                 <input
                   type="radio"
                   name="device"

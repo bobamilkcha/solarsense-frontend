@@ -51,9 +51,11 @@ export function toIntervalSeries(
 ): SeriesPoint[] {
   const buckets = new Map<number, { sum: number; count: number }>()
   for (const reading of sorted) {
+    const value = reading[field]
+    if (value === null) continue // sensor failed on the device: no data, not zero
     const key = Math.floor(Date.parse(reading.device_timestamp) / intervalMs) * intervalMs
     const bucket = buckets.get(key) ?? { sum: 0, count: 0 }
-    bucket.sum += reading[field]
+    bucket.sum += value
     bucket.count += 1
     buckets.set(key, bucket)
   }
@@ -84,9 +86,11 @@ export function toBucketedSeries(
   const sums = new Array<number>(bucketCount).fill(0)
   const counts = new Array<number>(bucketCount).fill(0)
   for (const reading of sorted) {
+    const value = reading[field]
+    if (value === null) continue
     const index = Math.min(bucketCount - 1, Math.floor((Date.parse(reading.device_timestamp) - startMs) / size))
     if (index < 0) continue
-    sums[index] += reading[field]
+    sums[index] += value
     counts[index] += 1
   }
   return sums.map((sum, i) => ({
@@ -96,17 +100,19 @@ export function toBucketedSeries(
 }
 
 export function summarize(sorted: SensorReading[], field: NumericField) {
-  if (sorted.length === 0) return null
   let min = Infinity
   let max = -Infinity
   let sum = 0
+  let count = 0
   for (const r of sorted) {
     const v = r[field]
+    if (v === null) continue
     min = Math.min(min, v)
     max = Math.max(max, v)
     sum += v
+    count += 1
   }
-  return { min, max, avg: sum / sorted.length }
+  return count === 0 ? null : { min, max, avg: sum / count }
 }
 
 const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']

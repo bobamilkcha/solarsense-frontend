@@ -8,7 +8,7 @@ import { useAddChecklistItem } from '../../../hooks/useVisits'
 const NEW_CATEGORY = '__new__'
 
 const inputClass =
-  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
+  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
 
 export function AddItemForm({ visit, categories }: { visit: Pick<Visit, 'id' | 'site_id'>; categories: string[] }) {
   const add = useAddChecklistItem(visit)

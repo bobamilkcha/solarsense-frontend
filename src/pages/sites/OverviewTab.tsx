@@ -8,6 +8,7 @@ import { useNow } from '../../hooks/useNow'
 import { useLiveReadings } from '../../hooks/useReadings'
 import { useVisits } from '../../hooks/useVisits'
 import { formatDateTime, formatNumber, formatRelative } from '../../lib/format'
+import { DeviceSettingsPanel } from './DeviceSettingsPanel'
 import { useSiteContext } from './siteContext'
 
 const STALE_AFTER_MS = 15 * 60_000
@@ -118,6 +119,8 @@ export function OverviewTab() {
           <VisitsSummary siteId={site.id} />
         </SummaryCard>
       </div>
+
+      <DeviceSettingsPanel deviceId={site.device_id} />
 
       <Card>
         <h2 className="mb-4 font-semibold">Site details</h2>

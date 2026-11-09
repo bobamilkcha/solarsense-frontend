@@ -10,7 +10,7 @@ const PRESETS = [
 ]
 
 const inputClass =
-  'mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
+  'mt-1 block w-full rounded-lg border border-slate-300 bg-white min-h-11 px-3 py-2 text-base shadow-sm sm:min-h-0 sm:text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none'
 
 export function DateRangePicker({ value, onChange }: { value: DateRange; onChange: (range: DateRange) => void }) {
   const today = toLocalDateString(new Date())
@@ -51,7 +51,7 @@ export function DateRangePicker({ value, onChange }: { value: DateRange; onChang
               onClick={() => onChange({ from, to: today })}
               aria-pressed={active}
               className={cn(
-                'rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-inset',
+                'min-h-11 rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-inset sm:min-h-0',
                 active ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50',
               )}
             >

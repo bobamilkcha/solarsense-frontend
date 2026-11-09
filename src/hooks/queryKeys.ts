@@ -4,6 +4,8 @@ export const queryKeys = {
   unpairedDevices: ['devices', 'unpaired'] as const,
   users: ['users'] as const,
   invitations: ['invitations'] as const,
+  deviceConfig: (deviceId: string) => ['devices', deviceId, 'config'] as const,
+  surveySpots: (siteId: string) => ['sites', siteId, 'survey-spots'] as const,
   readings: (siteId: string) => ['sites', siteId, 'readings'] as const,
   benchmark: (siteId: string, month: number) => ['sites', siteId, 'benchmark', month] as const,
   bills: (siteId: string) => ['sites', siteId, 'bills'] as const,

@@ -35,15 +35,15 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
   const error = update.error ?? remove.error
 
   return (
-    <li className="px-4 py-3 sm:px-5">
+    <li className="px-4 py-4 sm:px-5 sm:py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-900">{item.label}</p>
+          <p className="text-base font-medium text-slate-900 sm:text-sm">{item.label}</p>
           {!expanded && (item.value || item.notes) && (
             <p className="truncate text-xs text-slate-500">{[item.value, item.notes].filter(Boolean).join(' · ')}</p>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5" role="group" aria-label={`Status for ${item.label}`}>
+        <div className="flex w-full shrink-0 items-center gap-1.5 sm:w-auto" role="group" aria-label={`Status for ${item.label}`}>
           {STATUS_OPTIONS.map((option) => {
             const active = item.status === option.status
             return (
@@ -54,7 +54,7 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
                 aria-pressed={active}
                 onClick={() => setStatus(option.status)}
                 className={cn(
-                  'inline-flex min-h-11 min-w-16 items-center justify-center gap-1 rounded-lg px-3 text-sm font-medium ring-1 ring-inset transition-colors disabled:cursor-not-allowed',
+                  'inline-flex min-h-12 flex-1 items-center justify-center gap-1 rounded-lg px-3 text-sm font-medium sm:min-h-11 sm:min-w-16 sm:flex-none ring-1 ring-inset transition-colors disabled:cursor-not-allowed',
                   active ? option.active : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50 disabled:opacity-60',
                 )}
               >
@@ -68,7 +68,7 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={expanded ? 'Hide details' : 'Add value or notes'}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 sm:min-h-11 sm:min-w-11"
           >
             <svg className={cn('h-5 w-5 transition-transform', expanded && 'rotate-180')} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" />
@@ -88,7 +88,7 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
               placeholder="e.g. 45 m²"
               onChange={(e) => setValue(e.target.value)}
               onBlur={() => saveField('value', value)}
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50"
+              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50 sm:py-2 sm:text-sm"
             />
           </label>
           <label className="text-xs font-medium text-slate-600">
@@ -99,7 +99,7 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
               maxLength={10000}
               onChange={(e) => setNotes(e.target.value)}
               onBlur={() => saveField('notes', notes)}
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50"
+              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none disabled:bg-slate-50 sm:py-2 sm:text-sm"
             />
           </label>
           {!readOnly && (
@@ -109,7 +109,7 @@ export function ChecklistItemRow({ item, visit, readOnly }: Props) {
               onClick={() => {
                 if (window.confirm(`Remove “${item.label}” from this checklist?`)) remove.mutate(item.id)
               }}
-              className="min-h-10 rounded-lg px-3 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+              className="min-h-11 rounded-lg px-3 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
             >
               Remove item
             </button>

@@ -13,7 +13,7 @@ export function TextArea({ label, hint, className, id, rows = 3, ...rest }: Text
       <textarea
         id={inputId}
         rows={rows}
-        className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none"
+        className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base shadow-sm sm:text-sm placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none"
         {...rest}
       />
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}

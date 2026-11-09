@@ -41,7 +41,7 @@ function InviteCreated({ invite, onDone }: { invite: InvitationCreated; onDone: 
           value={link}
           aria-label="Invite link"
           onFocus={(e) => e.target.select()}
-          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs"
+          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 font-mono text-base sm:text-xs"
         />
         <Button variant="secondary" onClick={copy}>
           {copied ? 'Copied' : 'Copy'}
