@@ -13,7 +13,7 @@ export function ReadingsTable({ readings, maxRows = 100 }: { readings: SensorRea
             <th scope="col" className="px-3 py-2 font-medium">Irradiance (W/m²)</th>
             <th scope="col" className="px-3 py-2 font-medium">Temp (°C)</th>
             <th scope="col" className="px-3 py-2 font-medium">Humidity (%)</th>
-            <th scope="col" className="px-3 py-2 font-medium">Tilt x / y / z</th>
+            <th scope="col" className="px-3 py-2 font-medium">Tilt (°)</th>
             <th scope="col" className="px-3 py-2 font-medium">Heading (°)</th>
             <th scope="col" className="px-3 py-2 font-medium">Voltage (V)</th>
           </tr>
@@ -26,7 +26,7 @@ export function ReadingsTable({ readings, maxRows = 100 }: { readings: SensorRea
               <td className="px-3 py-2">{formatNumber(r.ambient_temp)}</td>
               <td className="px-3 py-2">{formatNumber(r.humidity)}</td>
               <td className="px-3 py-2 whitespace-nowrap">
-                {formatNumber(r.tilt_x, 2)} / {formatNumber(r.tilt_y, 2)} / {formatNumber(r.tilt_z, 2)}
+                {formatNumber(r.tilt_deg, 0)}
               </td>
               <td className="px-3 py-2">{formatNumber(r.heading, 0)}</td>
               <td className="px-3 py-2">{formatNumber(r.cell_voltage, 3)}</td>

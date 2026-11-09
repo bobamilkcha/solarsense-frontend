@@ -28,13 +28,10 @@ function LatestCards({ latest }: { latest: SensorReading }) {
       <StatTile label="Ambient temperature" value={formatNumber(latest.ambient_temp)} unit="°C" />
       <StatTile label="Humidity" value={formatNumber(latest.humidity, 0)} unit="%" />
       <StatTile
-        label="Tilt (x / y / z)"
-        value={
-          <span className="text-lg">
-            {formatNumber(latest.tilt_x, 2)} / {formatNumber(latest.tilt_y, 2)} / {formatNumber(latest.tilt_z, 2)}
-          </span>
-        }
-        detail="Accelerometer axes"
+        label="Tilt"
+        value={formatNumber(latest.tilt_deg, 0)}
+        unit="°"
+        detail={`Roll ${formatNumber(latest.roll, 0)}° · pitch ${formatNumber(latest.pitch, 0)}° (0° is flat)`}
       />
       <StatTile
         label="Heading"

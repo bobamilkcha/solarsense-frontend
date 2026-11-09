@@ -1,10 +1,15 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useParams } from 'react-router'
+import { isAdmin } from '../../auth/roles'
+import { useCurrentUser } from '../../auth/useSession'
 import { Breadcrumbs } from '../../components/Breadcrumbs'
+import { Button } from '../../components/ui/Button'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { ErrorState, LoadingState } from '../../components/ui/States'
 import { useProject, useSite } from '../../hooks/useProjects'
 import { cn } from '../../lib/cn'
 import { NotFoundPage } from '../NotFoundPage'
+import { DeviceDialog } from './DeviceDialog'
 import type { SiteContext } from './siteContext'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
@@ -29,6 +34,8 @@ export function SitePage() {
   const { siteId = '' } = useParams()
   const site = useSite(siteId)
   const project = useProject(site.data?.project_id ?? '')
+  const canManage = isAdmin(useCurrentUser())
+  const [deviceOpen, setDeviceOpen] = useState(false)
   useDocumentTitle(site.data?.name)
 
   if (site.isPending) return <LoadingState label="Loading site…" />
@@ -51,8 +58,21 @@ export function SitePage() {
         title={site.data.name}
         description={
           <>
-            Device <span className="font-mono text-slate-700">{site.data.device_id}</span>
+            {site.data.device_id ? (
+              <>
+                Device <span className="font-mono text-slate-700">{site.data.device_id}</span>
+              </>
+            ) : (
+              'No device paired'
+            )}
           </>
+        }
+        actions={
+          canManage ? (
+            <Button variant="secondary" onClick={() => setDeviceOpen(true)}>
+              {site.data.device_id ? 'Change device' : 'Pair device'}
+            </Button>
+          ) : null
         }
       />
       <nav className="-mt-2 mb-6 flex gap-6 overflow-x-auto border-b border-slate-200" aria-label="Site sections">
@@ -63,6 +83,7 @@ export function SitePage() {
         ))}
       </nav>
       <Outlet context={context} />
+      {canManage && <DeviceDialog site={site.data} open={deviceOpen} onClose={() => setDeviceOpen(false)} />}
     </>
   )
 }

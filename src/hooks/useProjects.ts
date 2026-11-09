@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createProject, createSite, listProjects, listSites } from '../api/projects'
+import { createProject, createSite, listProjects, listSites, listUnpairedDevices, pairDevice, unpairDevice } from '../api/projects'
 import type { Project, Site, SiteCreateRequest } from '../api/types'
 import { queryKeys } from './queryKeys'
 
@@ -50,5 +50,37 @@ export function useCreateSite(projectId: string) {
   return useMutation({
     mutationFn: (body: SiteCreateRequest) => createSite(projectId, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.sites }),
+  })
+}
+
+/** Polls while the picker is open, since a freshly powered device appears after ~30 s. */
+export function useUnpairedDevices(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.unpairedDevices,
+    queryFn: listUnpairedDevices,
+    enabled,
+    refetchInterval: enabled ? 5_000 : false,
+  })
+}
+
+export function usePairDevice(siteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (deviceId: string) => pairDevice(siteId, deviceId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sites })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.unpairedDevices })
+    },
+  })
+}
+
+export function useUnpairDevice(siteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => unpairDevice(siteId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sites })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.unpairedDevices })
+    },
   })
 }

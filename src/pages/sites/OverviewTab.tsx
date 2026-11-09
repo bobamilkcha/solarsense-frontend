@@ -124,7 +124,7 @@ export function OverviewTab() {
         <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Detail label="Project">{project?.name ?? '—'}</Detail>
           <Detail label="Device ID">
-            <span className="font-mono break-all">{site.device_id}</span>
+            <span className="font-mono break-all">{site.device_id ?? 'Not paired'}</span>
           </Detail>
           <Detail label="Location">
             <a href={mapUrl} target="_blank" rel="noreferrer" className="text-amber-700 hover:text-amber-600">

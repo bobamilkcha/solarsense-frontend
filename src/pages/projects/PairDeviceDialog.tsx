@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { getErrorMessage, getErrorStatus } from '../../api/errors'
+import { getErrorMessage } from '../../api/errors'
 import { Alert } from '../../components/ui/Alert'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
@@ -16,14 +16,14 @@ function parseCoordinate(value: string, limit: number): number | null {
 function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () => void }) {
   const navigate = useNavigate()
   const mutation = useCreateSite(projectId)
-  const [form, setForm] = useState({ name: '', device_id: '', lat: '', lng: '' })
+  const [form, setForm] = useState({ name: '', lat: '', lng: '' })
   const [touched, setTouched] = useState(false)
   const [locating, setLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)
 
   const lat = parseCoordinate(form.lat, 90)
   const lng = parseCoordinate(form.lng, 180)
-  const valid = form.name.trim() && form.device_id.trim() && lat !== null && lng !== null
+  const valid = form.name.trim() && lat !== null && lng !== null
 
   function fillCurrentLocation() {
     if (!navigator.geolocation) {
@@ -50,7 +50,7 @@ function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () =
     setTouched(true)
     if (!valid || lat === null || lng === null) return
     mutation.mutate(
-      { name: form.name.trim(), device_id: form.device_id.trim(), location_lat: lat, location_lng: lng },
+      { name: form.name.trim(), location_lat: lat, location_lng: lng },
       {
         onSuccess: (site) => {
           onDone()
@@ -60,10 +60,7 @@ function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () =
     )
   }
 
-  const errorMessage =
-    getErrorStatus(mutation.error) === 409
-      ? 'This device ID is already paired with another site.'
-      : getErrorMessage(mutation.error)
+  const errorMessage = getErrorMessage(mutation.error)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -77,19 +74,6 @@ function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () =
         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
         placeholder="e.g. Main roof"
         error={touched && !form.name.trim() ? 'Site name is required.' : undefined}
-      />
-      <TextField
-        label="Device ID"
-        required
-        maxLength={200}
-        autoCapitalize="off"
-        autoCorrect="off"
-        spellCheck={false}
-        className="font-mono"
-        value={form.device_id}
-        onChange={(e) => setForm((f) => ({ ...f, device_id: e.target.value }))}
-        hint="The ID the ESP32 device reports. It must match exactly."
-        error={touched && !form.device_id.trim() ? 'Device ID is required.' : undefined}
       />
       <div>
         <div className="grid grid-cols-2 gap-3">
@@ -122,7 +106,7 @@ function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () =
           Cancel
         </Button>
         <Button type="submit" loading={mutation.isPending}>
-          Pair device
+          Add site
         </Button>
       </div>
     </form>
@@ -131,7 +115,7 @@ function PairDeviceForm({ projectId, onDone }: { projectId: string; onDone: () =
 
 export function PairDeviceDialog({ projectId, open, onClose }: { projectId: string; open: boolean; onClose: () => void }) {
   return (
-    <Modal open={open} onClose={onClose} title="Pair a device to a new site">
+    <Modal open={open} onClose={onClose} title="Add a site">
       <PairDeviceForm projectId={projectId} onDone={onClose} />
     </Modal>
   )

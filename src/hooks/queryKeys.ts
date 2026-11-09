@@ -1,6 +1,7 @@
 export const queryKeys = {
   projects: ['projects'] as const,
   sites: ['sites'] as const,
+  unpairedDevices: ['devices', 'unpaired'] as const,
   users: ['users'] as const,
   invitations: ['invitations'] as const,
   readings: (siteId: string) => ['sites', siteId, 'readings'] as const,

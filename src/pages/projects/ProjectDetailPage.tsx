@@ -26,7 +26,7 @@ function SiteRow({ site }: { site: Site }) {
             {site.location_lat.toFixed(5)}, {site.location_lng.toFixed(5)} · added {formatDate(site.created_at)}
           </p>
         </div>
-        <span className="font-mono text-xs text-slate-600">{site.device_id}</span>
+        <span className="font-mono text-xs text-slate-600">{site.device_id ?? 'No device'}</span>
       </Link>
     </li>
   )
@@ -47,7 +47,7 @@ export function ProjectDetailPage() {
   }
   if (!project.data) return <NotFoundPage />
 
-  const pairButton = canPair ? <Button onClick={() => setPairing(true)}>Pair a device</Button> : null
+  const pairButton = canPair ? <Button onClick={() => setPairing(true)}>Add a site</Button> : null
 
   return (
     <>
@@ -68,8 +68,8 @@ export function ProjectDetailPage() {
           title="No sites yet"
           description={
             canPair
-              ? 'Pair a SolarSense device with this project. Each device gets its own site.'
-              : 'Ask your company admin to pair a device with this project.'
+              ? 'Add a site to this project, then pair a SolarSense device to it.'
+              : 'Ask your company admin to add a site to this project.'
           }
           action={pairButton}
         />

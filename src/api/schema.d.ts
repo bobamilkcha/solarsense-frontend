@@ -209,6 +209,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/devices/unpaired": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Unpaired Devices
+         * @description Devices that are online but not paired to any site, for the pairing picker.
+         */
+        get: operations["list_unpaired_devices_devices_unpaired_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sites/{site_id}/device": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Pair Device
+         * @description Pair a device to the site. Replaces the site's current device, if any.
+         */
+        put: operations["pair_device_sites__site_id__device_put"];
+        post?: never;
+        /**
+         * Unpair Device
+         * @description Release the site's device so it can be moved to another site.
+         */
+        delete: operations["unpair_device_sites__site_id__device_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sites/{site_id}/benchmark": {
         parameters: {
             query?: never;
@@ -633,6 +677,34 @@ export interface components {
             /** Effective Rate Rm Per Kwh */
             effective_rate_rm_per_kwh: number | null;
         };
+        /** DeviceResponse */
+        DeviceResponse: {
+            /** Device Id */
+            device_id: string;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
+            /** Last Rssi */
+            last_rssi: number | null;
+            /**
+             * Short Code
+             * @description Matches the code on the device's sticker; show it in the picker.
+             */
+            readonly short_code: string;
+            /**
+             * Signal
+             * @description Wi-Fi strength from `last_rssi`: good (>= -67 dBm), fair (>= -80), weak.
+             * @enum {string}
+             */
+            readonly signal: "good" | "fair" | "weak" | "unknown";
+        };
         /** FeasibilityReport */
         FeasibilityReport: {
             /**
@@ -802,6 +874,11 @@ export interface components {
             /** Savings Rm */
             savings_rm: number;
         };
+        /** PairDeviceRequest */
+        PairDeviceRequest: {
+            /** Device Id */
+            device_id: string;
+        };
         /** ProjectCreateRequest */
         ProjectCreateRequest: {
             /** Name */
@@ -851,14 +928,14 @@ export interface components {
             ambient_temp: number;
             /** Humidity */
             humidity: number;
-            /** Tilt X */
-            tilt_x: number;
-            /** Tilt Y */
-            tilt_y: number;
-            /** Tilt Z */
-            tilt_z: number;
+            /** Roll */
+            roll: number;
+            /** Pitch */
+            pitch: number;
             /** Heading */
             heading: number;
+            /** Rssi */
+            rssi: number | null;
             /**
              * Device Timestamp
              * Format: date-time
@@ -874,6 +951,14 @@ export interface components {
              * @description Derived from cell_current using the configured reference cell Isc.
              */
             readonly irradiance_wm2: number;
+            /**
+             * Tilt Deg
+             * @description Angle of the device from horizontal, combining roll and pitch.
+             *
+             *     0 is lying flat; this is the panel tilt angle when the device is
+             *     mounted flush on a panel.
+             */
+            readonly tilt_deg: number;
         };
         /** ShadingSummary */
         ShadingSummary: {
@@ -894,7 +979,7 @@ export interface components {
             /** Name */
             name: string;
             /** Device Id */
-            device_id: string;
+            device_id?: string | null;
             /** Location Lat */
             location_lat: number;
             /** Location Lng */
@@ -915,7 +1000,7 @@ export interface components {
             /** Name */
             name: string;
             /** Device Id */
-            device_id: string;
+            device_id: string | null;
             /** Location Lat */
             location_lat: number;
             /** Location Lng */
@@ -1533,6 +1618,104 @@ export interface operations {
                 content: {
                     "text/csv": unknown;
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_unpaired_devices_devices_unpaired_get: {
+        parameters: {
+            query?: {
+                /** @description Only devices that published this recently */
+                within_minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pair_device_sites__site_id__device_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PairDeviceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unpair_device_sites__site_id__device_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteResponse"];
                 };
             };
             /** @description Validation Error */

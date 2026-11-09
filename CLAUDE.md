@@ -91,4 +91,9 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
 - Phase 8 done: lazy-loaded routes (main chunk 262 kB), route error page,
   page titles, site overview summaries, nav highlight on site pages,
   session kept on network errors during refresh, README.
+- Phase 9 done: device pairing per docs/FRONTEND.md. Admins pair, change or
+  unpair a site's device from the site page (DeviceDialog: picks from
+  GET /devices/unpaired by sticker code, PUT/DELETE /sites/:id/device).
+  "Add a site" no longer asks for a device ID. Live/History use roll, pitch
+  and tilt_deg instead of tilt_x/y/z.
 - Not yet verified in a browser or against the real backend.
