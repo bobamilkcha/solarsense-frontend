@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => {
     server: {
       // Reachable from a phone on the same Wi-Fi (`npm run dev` prints the Network URL).
       host: true,
-      // Allow a tunnel hostname (e.g. cloudflared) to reach the dev server.
-      allowedHosts: ['.trycloudflare.com'],
+      // Allow a tunnel hostname (cloudflared or ngrok) to reach the dev server.
+      allowedHosts: ['.trycloudflare.com', '.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app', '.ngrok.dev'],
       // Dev-only: with VITE_API_URL=/api the browser (or a phone) only talks to this one
       // origin, and the dev server forwards /api to the backend. No CORS, same-origin cookies.
       proxy: {
