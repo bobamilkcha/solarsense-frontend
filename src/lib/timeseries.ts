@@ -39,6 +39,36 @@ export function toSeriesWithGaps(sorted: SensorReading[], field: NumericField, m
 }
 
 /**
+ * Average readings into buckets of `intervalMs`, aligned to the clock (so
+ * 1-minute buckets start on the minute). Buckets with no readings are skipped,
+ * and the line breaks where the device was quiet for much longer than the interval.
+ */
+export function toIntervalSeries(
+  sorted: SensorReading[],
+  field: NumericField,
+  intervalMs: number,
+  minGapMs = 10 * 60_000,
+): SeriesPoint[] {
+  const buckets = new Map<number, { sum: number; count: number }>()
+  for (const reading of sorted) {
+    const key = Math.floor(Date.parse(reading.device_timestamp) / intervalMs) * intervalMs
+    const bucket = buckets.get(key) ?? { sum: 0, count: 0 }
+    bucket.sum += reading[field]
+    bucket.count += 1
+    buckets.set(key, bucket)
+  }
+  const gapThreshold = Math.max(minGapMs, intervalMs * 4)
+  const points: SeriesPoint[] = []
+  let previous: number | null = null
+  for (const [t, { sum, count }] of [...buckets].sort((a, b) => a[0] - b[0])) {
+    if (previous !== null && t - previous > gapThreshold) points.push({ t: previous + 1, value: null })
+    points.push({ t, value: sum / count })
+    previous = t
+  }
+  return points
+}
+
+/**
  * Average readings into fixed time buckets for long ranges. Empty buckets
  * become null, which breaks the line, so gaps in the data stay visible.
  */
