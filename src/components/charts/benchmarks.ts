@@ -36,13 +36,18 @@ export const IRRADIANCE_BENCHMARK: ChartBenchmark = {
   ],
 }
 
-/** Panels are rated at 25 °C and lose roughly 0.3–0.4% output per °C above it. Cooler is not penalised. */
-export const TEMPERATURE_BENCHMARK: ChartBenchmark = {
-  reference: { value: 25, label: 'Rated 25 °C' },
+/**
+ * For ESTIMATED CELL temperature only, never air temperature: the 25 °C rating is
+ * the cell temperature at standard test conditions (STC), and cells in sun run
+ * 20–30 °C above the air. Output drops roughly 0.3–0.4% per °C above 25 °C, so
+ * orange (45 °C) is about 7% loss and red (60 °C) about 12%.
+ */
+export const CELL_TEMPERATURE_BENCHMARK: ChartBenchmark = {
+  reference: { value: 25, label: 'STC cell 25 °C' },
   stops: [
     { value: 25, color: GREEN },
-    { value: 35, color: ORANGE },
-    { value: 45, color: RED },
+    { value: 45, color: ORANGE },
+    { value: 60, color: RED },
   ],
 }
 

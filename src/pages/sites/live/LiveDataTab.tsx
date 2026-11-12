@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { SensorReading } from '../../../api/types'
 import { ChartCard } from '../../../components/charts/ChartCard'
-import { IRRADIANCE_BENCHMARK, TEMPERATURE_BENCHMARK } from '../../../components/charts/benchmarks'
+import { AirTempInfo, CellTempInfo, HumidityInfo, HumidityLevelText, IrradianceInfo } from '../../../components/charts/chartInfo'
+import { CELL_TEMPERATURE_BENCHMARK, IRRADIANCE_BENCHMARK } from '../../../components/charts/benchmarks'
 import { TimeSeriesChart } from '../../../components/charts/TimeSeriesChart'
 import { ReadingsTable } from '../../../components/ReadingsTable'
 import { StatTile } from '../../../components/StatTile'
@@ -11,8 +12,9 @@ import { EmptyState, ErrorState, LoadingState } from '../../../components/ui/Sta
 import { LIVE_POLL_INTERVAL_MS } from '../../../config'
 import { useNow } from '../../../hooks/useNow'
 import { LIVE_MAX_HISTORY_MS, useLiveReadings, useLiveWeek } from '../../../hooks/useReadings'
+import { DEFAULT_NOCT_C, readingCellTemp } from '../../../lib/cellTemp'
 import { formatDateTime, formatNumber, formatRelative } from '../../../lib/format'
-import { compassDirection, sortReadings, toIntervalSeries, toSeriesWithGaps } from '../../../lib/timeseries'
+import { compassDirection, type SeriesField, sortReadings, toIntervalSeries, toSeriesWithGaps } from '../../../lib/timeseries'
 import { useSiteContext } from '../siteContext'
 
 const SELECT_CLASS =
@@ -54,72 +56,22 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 1000)} s`
 }
 
-/** Rule-of-thumb bands, not a standard. */
-function humidityLevel(percent: number): { label: string; tone: 'good' | 'fair' | 'high' } {
-  if (percent < 60) return { label: 'Low to moderate', tone: 'good' }
-  if (percent <= 80) return { label: 'Moderate to high', tone: 'fair' }
-  return { label: 'High', tone: 'high' }
-}
-
-const HUMIDITY_TONE = { good: 'text-green-700', fair: 'text-orange-600', high: 'text-red-600' } as const
-
-function HumidityNote({ humidity }: { humidity: number | null }) {
-  const level = humidity === null ? null : humidityLevel(humidity)
-  return (
-    <details className="rounded-xl bg-white p-4 text-sm shadow-sm ring-1 ring-slate-200">
-      <summary className="cursor-pointer font-medium text-slate-900">
-        Why humidity matters:{' '}
-        {level ? (
-          <span className={HUMIDITY_TONE[level.tone]}>
-            {formatNumber(humidity, 0)}% now ({level.label.toLowerCase()})
-          </span>
-        ) : (
-          <span className="text-slate-500">no reading right now</span>
-        )}
-      </summary>
-      <div className="mt-3 space-y-2 text-slate-600">
-        <p>
-          Humidity doesn't change panel output much on its own, but it points to site risks that matter over the
-          system's life:
-        </p>
-        <ul className="list-disc space-y-1 pl-5">
-          <li>
-            <strong>Less sunlight:</strong> humid air and haze scatter some sunlight, so irradiance is a little lower
-            than on a dry day with the same sun.
-          </li>
-          <li>
-            <strong>Dew and condensation:</strong> overnight moisture on the glass and in junction boxes. It rinses
-            some dust off but can leave dirty films that block light.
-          </li>
-          <li>
-            <strong>Corrosion and degradation:</strong> long periods above about 80% speed up corrosion of connectors
-            and frames and can contribute to potential-induced degradation (PID). Worth choosing sealed connectors and
-            checking the module's humidity rating.
-          </li>
-          <li>
-            <strong>Cooling:</strong> humid, rainy conditions often come with cloud, but damp air and rain keep panels
-            cooler, which helps efficiency.
-          </li>
-        </ul>
-        <p className="text-xs text-slate-500">
-          Rule of thumb: under 60% is low concern, 60–80% moderate, over 80% high. A tropical site like Malaysia is
-          often humid, so look at the average and how long it stays high, not a single reading.
-        </p>
-      </div>
-    </details>
-  )
-}
-
 function LatestCards({ latest }: { latest: SensorReading }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
       <StatTile
         label="Irradiance"
         value={formatNumber(latest.irradiance_wm2, 0)}
         unit="W/m²"
         detail="Approximate (calibration pending)"
       />
-      <StatTile label="Ambient temperature" value={formatNumber(latest.ambient_temp)} unit="°C" />
+      <StatTile label="Air temperature" value={formatNumber(latest.ambient_temp)} unit="°C" />
+      <StatTile
+        label="Panel cell temperature"
+        value={formatNumber(readingCellTemp(latest))}
+        unit="°C"
+        detail="Estimated from air temperature and irradiance"
+      />
       <StatTile label="Humidity" value={formatNumber(latest.humidity, 0)} unit="%" />
       <StatTile
         label="Tilt"
@@ -175,9 +127,14 @@ export function LiveDataTab() {
   const autoMs = (viewTo - viewFrom) / MAX_POINTS >= 10_000 ? Math.ceil((viewTo - viewFrom) / MAX_POINTS / 1000) * 1000 : 0
   const effectiveMs = Math.max(intervalMs, autoMs)
   const series = useMemo(() => {
-    const build = (field: 'irradiance_wm2' | 'ambient_temp' | 'humidity') =>
+    const build = (field: SeriesField) =>
       effectiveMs ? toIntervalSeries(windowed, field, effectiveMs) : toSeriesWithGaps(windowed, field)
-    return { irradiance: build('irradiance_wm2'), temp: build('ambient_temp'), humidity: build('humidity') }
+    return {
+      irradiance: build('irradiance_wm2'),
+      cellTemp: build(readingCellTemp),
+      temp: build('ambient_temp'),
+      humidity: build('humidity'),
+    }
   }, [windowed, effectiveMs])
 
   if (readings.isPending) return <LoadingState label="Loading latest readings…" />
@@ -269,24 +226,24 @@ export function LiveDataTab() {
         {week.data?.truncated && <span className="text-xs text-amber-700">Some of the week is missing (too many readings).</span>}
       </div>
 
-      <ChartCard title="Irradiance (W/m²)" subtitle={`${windowed.length} readings · ${span}`}>
+      <ChartCard title="Irradiance (W/m²)" subtitle={`${windowed.length} readings · ${span}`} info={<IrradianceInfo />}>
         <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={260} domain={view} benchmark={IRRADIANCE_BENCHMARK} onZoom={applyZoom} />
       </ChartCard>
       <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Ambient temperature (°C)">
-          <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={view} benchmark={TEMPERATURE_BENCHMARK} onZoom={applyZoom} />
+        <ChartCard title="Estimated panel cell temperature (°C)" subtitle={`NOCT ${DEFAULT_NOCT_C} °C model`} info={<CellTempInfo />}>
+          <TimeSeriesChart points={series.cellTemp} label="Cell temperature (est.)" unit="°C" domain={view} benchmark={CELL_TEMPERATURE_BENCHMARK} onZoom={applyZoom} />
         </ChartCard>
-        <ChartCard title="Humidity (%)">
-          <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={view} onZoom={applyZoom} />
+        <ChartCard title="Air temperature (°C)" subtitle="Measured by the device" info={<AirTempInfo />}>
+          <TimeSeriesChart points={series.temp} label="Air temperature" unit="°C" domain={view} onZoom={applyZoom} />
         </ChartCard>
       </div>
-      <HumidityNote humidity={latest.humidity} />
+      <ChartCard title="Humidity (%)" subtitle={<HumidityLevelText value={latest.humidity} suffix="now" />} info={<HumidityInfo />}>
+        <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={view} onZoom={applyZoom} />
+      </ChartCard>
       <p className="text-xs text-slate-500">
-        Irradiance: yellow line is full sun (1000 W/m²), the dashed red line is a 200 W/m² minimum; the line turns from
-        red to green as sun gets stronger, and stays grey at night. Temperature: yellow line is the 25 °C panel rating;
-        hotter than that costs output, so the line turns red above it. These are rule-of-thumb guides.
+        Tap or hover the (i) on a chart for what it shows. Scroll over a chart to zoom, or drag across it to select a
+        range. Breaks in a line mean the device sent no data for that period.
       </p>
-      <p className="text-xs text-slate-500">Scroll over a chart to zoom, or drag across it to select a range. Breaks in a line mean the device sent no data for that period.</p>
 
       <div>
         <Button variant="secondary" size="sm" onClick={() => setShowTable((v) => !v)} aria-expanded={showTable}>

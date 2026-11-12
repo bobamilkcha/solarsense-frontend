@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { getErrorMessage } from '../../../api/errors'
 import { exportReadings, type ExportFormat } from '../../../api/readings'
 import { ChartCard } from '../../../components/charts/ChartCard'
-import { IRRADIANCE_BENCHMARK, TEMPERATURE_BENCHMARK } from '../../../components/charts/benchmarks'
+import { AirTempInfo, CellTempInfo, HumidityInfo, HumidityLevelText, IrradianceInfo } from '../../../components/charts/chartInfo'
+import { CELL_TEMPERATURE_BENCHMARK, IRRADIANCE_BENCHMARK } from '../../../components/charts/benchmarks'
 import { TimeSeriesChart } from '../../../components/charts/TimeSeriesChart'
 import { ReadingsTable } from '../../../components/ReadingsTable'
 import { StatTile } from '../../../components/StatTile'
@@ -12,6 +13,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../../components/ui/Sta
 import { HISTORY_MAX_PAGES, useReadingsInRange } from '../../../hooks/useReadings'
 import { addDays, isValidDateString, startOfLocalDate, toLocalDateString } from '../../../lib/dates'
 import { formatNumber } from '../../../lib/format'
+import { DEFAULT_NOCT_C, readingCellTemp } from '../../../lib/cellTemp'
 import { sortReadings, summarize, toBucketedSeries } from '../../../lib/timeseries'
 import { useSiteContext } from '../siteContext'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -69,12 +71,14 @@ export function HistoryTab() {
     const [from, to] = [start.getTime(), end.getTime()]
     return {
       irradiance: toBucketedSeries(sorted, 'irradiance_wm2', from, to),
+      cellTemp: toBucketedSeries(sorted, readingCellTemp, from, to),
       temp: toBucketedSeries(sorted, 'ambient_temp', from, to),
       humidity: toBucketedSeries(sorted, 'humidity', from, to),
     }
   }, [sorted, start, end])
   const irr = summarize(sorted, 'irradiance_wm2')
   const temp = summarize(sorted, 'ambient_temp')
+  const cellTemp = summarize(sorted, readingCellTemp)
   const hum = summarize(sorted, 'humidity')
 
   return (
@@ -103,14 +107,20 @@ export function HistoryTab() {
           )}
           {query.isFetching && <p className="text-xs text-slate-500">Updating…</p>}
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
             <StatTile label="Readings" value={sorted.length.toLocaleString()} />
             <StatTile label="Peak irradiance" value={formatNumber(irr?.max, 0)} unit="W/m²" />
             <StatTile
-              label="Temperature"
+              label="Air temperature"
               value={formatNumber(temp?.avg)}
               unit="°C avg"
               detail={temp ? `${formatNumber(temp.min)} – ${formatNumber(temp.max)} °C` : undefined}
+            />
+            <StatTile
+              label="Peak cell temperature"
+              value={formatNumber(cellTemp?.max)}
+              unit="°C (est.)"
+              detail="From air temperature and irradiance"
             />
             <StatTile
               label="Humidity"
@@ -123,18 +133,25 @@ export function HistoryTab() {
           <ChartCard
             title="Irradiance (W/m²)"
             subtitle={sorted.length > 500 ? 'Averaged into time buckets for display' : undefined}
+            info={<IrradianceInfo />}
           >
             <TimeSeriesChart points={series.irradiance} label="Irradiance" unit="W/m²" decimals={0} height={280} domain={domain} benchmark={IRRADIANCE_BENCHMARK} />
           </ChartCard>
           <div className="grid gap-5 lg:grid-cols-2">
-            <ChartCard title="Ambient temperature (°C)">
-              <TimeSeriesChart points={series.temp} label="Temperature" unit="°C" domain={domain} benchmark={TEMPERATURE_BENCHMARK} />
+            <ChartCard title="Estimated panel cell temperature (°C)" subtitle={`NOCT ${DEFAULT_NOCT_C} °C model`} info={<CellTempInfo />}>
+              <TimeSeriesChart points={series.cellTemp} label="Cell temperature (est.)" unit="°C" domain={domain} benchmark={CELL_TEMPERATURE_BENCHMARK} />
             </ChartCard>
-            <ChartCard title="Humidity (%)">
-              <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={domain} />
+            <ChartCard title="Air temperature (°C)" subtitle="Measured by the device" info={<AirTempInfo />}>
+              <TimeSeriesChart points={series.temp} label="Air temperature" unit="°C" domain={domain} />
             </ChartCard>
           </div>
-          <p className="text-xs text-slate-500">Breaks in a line mean the device sent no data for that period.</p>
+          <ChartCard title="Humidity (%)" subtitle={<HumidityLevelText value={hum?.avg} suffix="average" />} info={<HumidityInfo />}>
+            <TimeSeriesChart points={series.humidity} label="Humidity" unit="%" decimals={0} domain={domain} />
+          </ChartCard>
+          <p className="text-xs text-slate-500">
+            Tap or hover the (i) on a chart for what it shows. Breaks in a line mean the device sent no data for that
+            period.
+          </p>
 
           <div>
             <Button variant="secondary" size="sm" onClick={() => setShowTable((v) => !v)} aria-expanded={showTable}>

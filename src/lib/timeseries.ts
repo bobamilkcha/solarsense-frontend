@@ -2,7 +2,14 @@ import type { SensorReading } from '../api/types'
 
 export type NumericField = 'irradiance_wm2' | 'ambient_temp' | 'humidity' | 'heading' | 'cell_voltage'
 
+/** A reading field, or a value derived from a reading (e.g. estimated cell temperature). */
+export type SeriesField = NumericField | ((reading: SensorReading) => number | null)
+
 export type SeriesPoint = { t: number; value: number | null }
+
+function valueOf(reading: SensorReading, field: SeriesField): number | null {
+  return typeof field === 'function' ? field(reading) : reading[field]
+}
 
 /** Sort oldest → newest by device time and drop duplicates (late data can repeat or arrive out of order). */
 export function sortReadings(readings: SensorReading[]): SensorReading[] {
@@ -22,7 +29,7 @@ function median(values: number[]): number {
  * quiet for much longer than usual, so the line breaks instead of drawing a
  * misleading straight segment across the gap.
  */
-export function toSeriesWithGaps(sorted: SensorReading[], field: NumericField, minGapMs = 10 * 60_000): SeriesPoint[] {
+export function toSeriesWithGaps(sorted: SensorReading[], field: SeriesField, minGapMs = 10 * 60_000): SeriesPoint[] {
   if (sorted.length === 0) return []
   const times = sorted.map((r) => Date.parse(r.device_timestamp))
   const intervals = times.slice(1).map((t, i) => t - times[i])
@@ -33,7 +40,7 @@ export function toSeriesWithGaps(sorted: SensorReading[], field: NumericField, m
     if (i > 0 && times[i] - times[i - 1] > gapThreshold) {
       points.push({ t: times[i - 1] + 1, value: null })
     }
-    points.push({ t: times[i], value: reading[field] })
+    points.push({ t: times[i], value: valueOf(reading, field) })
   })
   return points
 }
@@ -45,13 +52,13 @@ export function toSeriesWithGaps(sorted: SensorReading[], field: NumericField, m
  */
 export function toIntervalSeries(
   sorted: SensorReading[],
-  field: NumericField,
+  field: SeriesField,
   intervalMs: number,
   minGapMs = 10 * 60_000,
 ): SeriesPoint[] {
   const buckets = new Map<number, { sum: number; count: number }>()
   for (const reading of sorted) {
-    const value = reading[field]
+    const value = valueOf(reading, field)
     if (value === null) continue // sensor failed on the device: no data, not zero
     const key = Math.floor(Date.parse(reading.device_timestamp) / intervalMs) * intervalMs
     const bucket = buckets.get(key) ?? { sum: 0, count: 0 }
@@ -76,7 +83,7 @@ export function toIntervalSeries(
  */
 export function toBucketedSeries(
   sorted: SensorReading[],
-  field: NumericField,
+  field: SeriesField,
   startMs: number,
   endMs: number,
   bucketCount = 500,
@@ -86,7 +93,7 @@ export function toBucketedSeries(
   const sums = new Array<number>(bucketCount).fill(0)
   const counts = new Array<number>(bucketCount).fill(0)
   for (const reading of sorted) {
-    const value = reading[field]
+    const value = valueOf(reading, field)
     if (value === null) continue
     const index = Math.min(bucketCount - 1, Math.floor((Date.parse(reading.device_timestamp) - startMs) / size))
     if (index < 0) continue
@@ -99,13 +106,13 @@ export function toBucketedSeries(
   }))
 }
 
-export function summarize(sorted: SensorReading[], field: NumericField) {
+export function summarize(sorted: SensorReading[], field: SeriesField) {
   let min = Infinity
   let max = -Infinity
   let sum = 0
   let count = 0
   for (const r of sorted) {
-    const v = r[field]
+    const v = valueOf(r, field)
     if (v === null) continue
     min = Math.min(min, v)
     max = Math.max(max, v)
