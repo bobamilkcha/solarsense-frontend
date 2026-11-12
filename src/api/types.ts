@@ -16,8 +16,10 @@ export type UserUpdateRequest = Schemas['UserUpdateRequest']
 
 export type Project = Schemas['ProjectResponse']
 export type ProjectCreateRequest = Schemas['ProjectCreateRequest']
+export type ProjectUpdateRequest = Schemas['ProjectUpdateRequest']
 export type Site = Schemas['SiteResponse']
 export type SiteCreateRequest = Schemas['SiteCreateRequest']
+export type SiteUpdateRequest = Schemas['SiteUpdateRequest']
 
 export type SensorReading = Schemas['SensorReadingResponse']
 export type Benchmark = Schemas['BenchmarkResponse']

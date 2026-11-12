@@ -67,6 +67,7 @@ company's data). These endpoints need `company_admin` or higher (others get
 403):
 
 - `POST /projects`, `POST /projects/{id}/sites`
+- `PATCH`/`DELETE /projects/{id}`, `PATCH`/`DELETE /sites/{id}`
 - `POST /users/invitations`, `GET /users/invitations`, `DELETE /users/invitations/{id}`
 - `PATCH /users/{id}`
 
@@ -102,13 +103,13 @@ Reading fields (`GET /sites/{id}/readings`):
 | `cell_voltage` | V, measured across the 10 Ω shunt |
 | `cell_current` | A, = voltage / 10 (computed by the backend) |
 | `irradiance_wm2` | W/m², sunlight strength. 1000 is full sun; 0 is night. **The main number to chart.** |
-| `ambient_temp` | °C |
-| `humidity` | % |
-| `roll`, `pitch` | degrees, device orientation from the accelerometer |
-| `tilt_deg` | degrees from horizontal, combining roll and pitch (computed by the backend). 0 is flat. **Use this as the panel tilt angle.** |
-| `heading` | degrees, magnetometer compass heading |
+| `ambient_temp` | °C. `null` if the device's temperature sensor failed |
+| `humidity` | %. `null` if the sensor failed |
+| `roll`, `pitch` | degrees, device orientation from the accelerometer. `null` if the sensor failed |
+| `tilt_deg` | degrees from horizontal, combining roll and pitch (computed by the backend). 0 is flat. **Use this as the panel tilt angle.** `null` when roll or pitch is `null` |
+| `heading` | degrees, magnetometer compass heading. `null` if the sensor failed |
 | `rssi` | dBm, device Wi-Fi signal (e.g. -59). Closer to 0 is stronger; below about -80 is weak. May be `null` on older readings |
-| `device_timestamp` | when the device took the reading |
+| `device_timestamp` | when the device took the reading (server receive time if the device's clock wasn't synced yet) |
 
 Irradiance calibration is still a placeholder constant, so treat absolute
 values as approximate.
@@ -123,6 +124,20 @@ values as approximate.
   creating the site without one and pairing it as below.
 - `GET /sites`: all sites the user can see. Each has `project_id`; group by it
   client-side. `device_id` is `null` when no device is paired.
+- `PATCH /projects/{id}` (admin): send only the fields to change, from `name`
+  and `description`. `"description": null` clears it; `name` can't be null or
+  empty (422). Returns the updated project.
+- `PATCH /sites/{id}` (admin): send only the fields to change, from `name`,
+  `location_lat` and `location_lng` (none may be null). Returns the updated
+  site. The benchmark and feasibility report always use the current location,
+  so fixing a wrong location also changes results for past readings. To
+  change the device, use the pairing endpoints below, not this.
+- `DELETE /projects/{id}` and `DELETE /sites/{id}` (admin): 204. **Permanent,
+  no undo**: deleting a site also deletes its readings, bills (with the
+  PDFs) and visits; deleting a project does that for every site in it. The
+  site's device becomes unpaired and can be paired elsewhere. Ask the user to
+  confirm (e.g. type the name) before calling.
+- Another company's project or site gives 404 on all of these.
 
 ### Pairing a device (admin)
 
@@ -143,6 +158,34 @@ Each device has a sticker with a 4-character code (the end of its ID, e.g.
 
 An empty list means no unpaired device is online: check power and Wi-Fi.
 Readings sent before pairing are not stored.
+
+### Device settings: remote config (admin)
+
+A paired device reports its status over MQTT and accepts a new publish
+interval remotely. Both endpoints are admin-only and keyed by the **device ID**
+(the site's `device_id`). They return 404 if the device isn't paired to one of
+your company's sites (or hasn't been heard from yet).
+
+- `GET /devices/{device_id}/config` returns
+  `{device_id, desired: {publish_interval_s, requested_at}, reported: {online, fw, publish_interval_s, last_seen_at}, synced}`.
+  - `reported` is what the device says it is **actually using**: show
+    `online`, `fw` and `last_seen_at` as the status line. When it goes offline
+    `fw` and `publish_interval_s` keep their last known values.
+  - `desired` is what an admin last asked for; `publish_interval_s` is `null`
+    if nobody ever has.
+  - `synced` is `true` when nothing is pending (no request, or the device has
+    reported the requested interval). Show **Pending…** while it's `false` and
+    **Applied** once it's `true`.
+- `PUT /devices/{device_id}/config` with `{"publish_interval_s": 30}`. It must
+  be an integer from 5 to 3600 (422 otherwise). Returns the same shape as GET,
+  so `synced` is `false` right after saving. The change is retained on the
+  broker: an offline device picks it up when it reconnects, so Pending can last
+  a while. 503 means the backend couldn't reach the MQTT broker and nothing was
+  saved.
+- While pending, poll `GET` every few seconds and stop when `synced` is `true`.
+- `last_seen_at` is the last time the device published anything (a reading or
+  an online status), not a heartbeat; a device that is `online` but hasn't been
+  seen for several publish intervals is likely stuck.
 
 ### Changing a device (admin)
 
@@ -276,7 +319,7 @@ invalidates the old link. An invalid token returns 400.
 
 1. Login / register (register creates a new company plus its admin)
 2. Accept invite (`/accept-invite?token=`)
-3. Projects → sites list (admins can create)
+3. Projects → sites list (admins can create, edit and delete)
 4. Site dashboard: live irradiance chart (poll), latest temperature and
    humidity, benchmark ratio, bills list and upload, visits list
 5. Visit checklist (mobile-first)
@@ -287,7 +330,7 @@ invalidates the old link. An invalid token returns 400.
 ## Not available yet (don't build UI that depends on these)
 
 - No `GET` for a single project or site. Use the list endpoints and filter.
-- No editing or deleting projects, sites or bills.
+- No editing or deleting bills.
 - No readings aggregation (hourly or daily averages). Charts must use raw
   readings (max 1000 per request).
 - No pagination totals on the readings list.

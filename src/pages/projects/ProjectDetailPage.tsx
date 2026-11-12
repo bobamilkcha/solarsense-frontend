@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
-import type { Site } from '../../api/types'
+import { Link, useNavigate, useParams } from 'react-router'
+import { getErrorMessage } from '../../api/errors'
+import type { Project, Site } from '../../api/types'
 import { isAdmin } from '../../auth/roles'
 import { useCurrentUser } from '../../auth/useSession'
 import { Breadcrumbs } from '../../components/Breadcrumbs'
+import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog'
 import { Button } from '../../components/ui/Button'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { EmptyState, ErrorState, LoadingState } from '../../components/ui/States'
-import { useProject, useProjectSites } from '../../hooks/useProjects'
+import { useDeleteProject, useProject, useProjectSites } from '../../hooks/useProjects'
 import { formatDate } from '../../lib/format'
 import { NotFoundPage } from '../NotFoundPage'
+import { EditProjectDialog } from './EditProjectDialog'
 import { PairDeviceDialog } from './PairDeviceDialog'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
@@ -32,13 +35,71 @@ function SiteRow({ site }: { site: Site }) {
   )
 }
 
+function DeleteProjectDialog({
+  project,
+  sites,
+  open,
+  onClose,
+}: {
+  project: Project
+  sites: Site[] | undefined
+  open: boolean
+  onClose: () => void
+}) {
+  const navigate = useNavigate()
+  const mutation = useDeleteProject(project.id)
+  const siteCount = sites?.length ?? 0
+  const pairedCount = sites?.filter((s) => s.device_id).length ?? 0
+
+  return (
+    <ConfirmDeleteDialog
+      open={open}
+      onClose={onClose}
+      title="Delete project"
+      name={project.name}
+      confirmLabel="Delete project"
+      pending={mutation.isPending}
+      error={mutation.isError ? getErrorMessage(mutation.error) : null}
+      onConfirm={() => mutation.mutate(undefined, { onSuccess: () => navigate('/projects', { replace: true }) })}
+    >
+      <p>
+        This deletes <strong>{project.name}</strong>
+        {siteCount > 0 ? (
+          <>
+            {' '}
+            and its {siteCount === 1 ? 'site' : `${siteCount} sites`}, with all their readings, TNB bills and site
+            visits.
+          </>
+        ) : (
+          '.'
+        )}
+      </p>
+      {sites && siteCount > 0 && (
+        <ul className="list-disc pl-5 text-slate-600">
+          {sites.map((s) => (
+            <li key={s.id}>{s.name}</li>
+          ))}
+        </ul>
+      )}
+      {pairedCount > 0 && (
+        <p>
+          {pairedCount === 1 ? 'Its device is' : `${pairedCount} devices are`} unpaired and can be paired to another
+          site.
+        </p>
+      )}
+      <p>Export any data you want to keep (History tab) first.</p>
+    </ConfirmDeleteDialog>
+  )
+}
+
 export function ProjectDetailPage() {
   const { projectId = '' } = useParams()
   const user = useCurrentUser()
   const canPair = isAdmin(user)
   const project = useProject(projectId)
   const sites = useProjectSites(projectId)
-  const [pairing, setPairing] = useState(false)
+  const [dialog, setDialog] = useState<'pair' | 'edit' | 'delete' | null>(null)
+  const closeDialog = () => setDialog(null)
   useDocumentTitle(project.data?.name)
 
   if (project.isPending) return <LoadingState label="Loading project…" />
@@ -47,7 +108,18 @@ export function ProjectDetailPage() {
   }
   if (!project.data) return <NotFoundPage />
 
-  const pairButton = canPair ? <Button onClick={() => setPairing(true)}>Add a site</Button> : null
+  const pairButton = canPair ? <Button onClick={() => setDialog('pair')}>Add a site</Button> : null
+  const headerActions = canPair ? (
+    <>
+      <Button variant="secondary" onClick={() => setDialog('edit')}>
+        Edit
+      </Button>
+      <Button variant="secondary" onClick={() => setDialog('delete')}>
+        Delete
+      </Button>
+      {pairButton}
+    </>
+  ) : null
 
   return (
     <>
@@ -55,7 +127,7 @@ export function ProjectDetailPage() {
       <PageHeader
         title={project.data.name}
         description={project.data.description || `Created ${formatDate(project.data.created_at)}`}
-        actions={pairButton}
+        actions={headerActions}
       />
 
       <h2 className="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase">Sites</h2>
@@ -81,7 +153,18 @@ export function ProjectDetailPage() {
         </ul>
       )}
 
-      <PairDeviceDialog projectId={projectId} open={pairing} onClose={() => setPairing(false)} />
+      {canPair && (
+        <>
+          <PairDeviceDialog projectId={projectId} open={dialog === 'pair'} onClose={closeDialog} />
+          <EditProjectDialog project={project.data} open={dialog === 'edit'} onClose={closeDialog} />
+          <DeleteProjectDialog
+            project={project.data}
+            sites={sites.data}
+            open={dialog === 'delete'}
+            onClose={closeDialog}
+          />
+        </>
+      )}
     </>
   )
 }

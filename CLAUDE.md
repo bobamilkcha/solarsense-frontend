@@ -68,7 +68,7 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
 - Phase 2 done: projects list + create (admin), project page with sites,
   device pairing (= create site with device_id, admin), site page shell with
   tabs at /sites/:siteId, team page (roles, deactivate, invite links).
-  Project/site edit and delete are NOT built: no backend endpoints.
+  (Project/site edit and delete added in Phase 12.)
 - Phase 3 done: Live Data tab (latest cards, polled charts, stale-device
   warning) and History tab (date range, bucketed charts, CSV/Excel export).
   History pages through /readings (no date filter in API), capped at 20k
@@ -107,4 +107,10 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   see docs/BACKEND_SURVEY_SPEC.md. Mobile pass: 16px inputs (no iOS zoom),
   44px+ touch targets, full-width checklist status buttons, dvh modals.
   Dev proxy in vite.config.ts (VITE_API_URL=/api) for phone/tunnel use.
+- Phase 12 done: admins edit and delete projects and sites (PATCH/DELETE
+  /projects/:id and /sites/:id). Edit/Delete buttons in the project and site
+  page headers; delete needs the name typed to confirm, then navigates up.
+  Editing a site's location warns that benchmark/report results change.
+  Deleting a site also clears its localStorage survey spots. Shared SiteForm
+  for add/edit site.
 - Not yet verified in a browser or against the real backend.

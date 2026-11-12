@@ -158,6 +158,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Project
+         * @description Delete the project and all its sites, with their readings, bills and visits.
+         */
+        delete: operations["delete_project_projects__project_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Project
+         * @description Change the name and/or description. Only the fields sent are changed.
+         */
+        patch: operations["update_project_projects__project_id__patch"];
+        trace?: never;
+    };
+    "/sites/{site_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Site
+         * @description Delete the site with its readings, bills and visits. Its device becomes unpaired.
+         */
+        delete: operations["delete_site_sites__site_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Site
+         * @description Change the name and/or location. Only the fields sent are changed. To change
+         *     the device, use PUT/DELETE /sites/{site_id}/device.
+         */
+        patch: operations["update_site_sites__site_id__patch"];
+        trace?: never;
+    };
     "/sites": {
         parameters: {
             query?: never;
@@ -965,6 +1014,13 @@ export interface components {
              */
             created_at: string;
         };
+        /** ProjectUpdateRequest */
+        ProjectUpdateRequest: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+        };
         /** ReportedStatus */
         ReportedStatus: {
             /** Online */
@@ -1088,6 +1144,15 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** SiteUpdateRequest */
+        SiteUpdateRequest: {
+            /** Name */
+            name?: string | null;
+            /** Location Lat */
+            location_lat?: number | null;
+            /** Location Lng */
+            location_lng?: number | null;
         };
         /** TNBBillResponse */
         TNBBillResponse: {
@@ -1599,6 +1664,134 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_projects__project_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_projects__project_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_site_sites__site_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_site_sites__site_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

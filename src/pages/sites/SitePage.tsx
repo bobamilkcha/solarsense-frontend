@@ -1,15 +1,19 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useParams } from 'react-router'
+import { NavLink, Outlet, useNavigate, useParams } from 'react-router'
+import { getErrorMessage } from '../../api/errors'
+import type { Site } from '../../api/types'
 import { isAdmin } from '../../auth/roles'
 import { useCurrentUser } from '../../auth/useSession'
 import { Breadcrumbs } from '../../components/Breadcrumbs'
+import { ConfirmDeleteDialog } from '../../components/ConfirmDeleteDialog'
 import { Button } from '../../components/ui/Button'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { ErrorState, LoadingState } from '../../components/ui/States'
-import { useProject, useSite } from '../../hooks/useProjects'
+import { useDeleteSite, useProject, useSite } from '../../hooks/useProjects'
 import { cn } from '../../lib/cn'
 import { NotFoundPage } from '../NotFoundPage'
 import { DeviceDialog } from './DeviceDialog'
+import { EditSiteDialog } from './EditSiteDialog'
 import type { SiteContext } from './siteContext'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
@@ -31,12 +35,46 @@ function tabClass({ isActive }: { isActive: boolean }) {
   )
 }
 
+function DeleteSiteDialog({ site, open, onClose }: { site: Site; open: boolean; onClose: () => void }) {
+  const navigate = useNavigate()
+  const mutation = useDeleteSite(site.id)
+
+  return (
+    <ConfirmDeleteDialog
+      open={open}
+      onClose={onClose}
+      title="Delete site"
+      name={site.name}
+      confirmLabel="Delete site"
+      pending={mutation.isPending}
+      error={mutation.isError ? getErrorMessage(mutation.error) : null}
+      onConfirm={() =>
+        mutation.mutate(undefined, {
+          onSuccess: () => navigate(`/projects/${site.project_id}`, { replace: true }),
+        })
+      }
+    >
+      <p>
+        This deletes <strong>{site.name}</strong> with all its readings, TNB bills (and their PDFs), site visits and
+        survey spots.
+      </p>
+      {site.device_id && (
+        <p>
+          Its device <span className="font-mono">{site.device_id}</span> is unpaired and can be paired to another site.
+        </p>
+      )}
+      <p>Export any readings you want to keep (History tab) first.</p>
+    </ConfirmDeleteDialog>
+  )
+}
+
 export function SitePage() {
   const { siteId = '' } = useParams()
   const site = useSite(siteId)
   const project = useProject(site.data?.project_id ?? '')
   const canManage = isAdmin(useCurrentUser())
-  const [deviceOpen, setDeviceOpen] = useState(false)
+  const [dialog, setDialog] = useState<'device' | 'edit' | 'delete' | null>(null)
+  const closeDialog = () => setDialog(null)
   useDocumentTitle(site.data?.name)
 
   if (site.isPending) return <LoadingState label="Loading site…" />
@@ -70,9 +108,17 @@ export function SitePage() {
         }
         actions={
           canManage ? (
-            <Button variant="secondary" onClick={() => setDeviceOpen(true)}>
-              {site.data.device_id ? 'Change device' : 'Pair device'}
-            </Button>
+            <>
+              <Button variant="secondary" onClick={() => setDialog('edit')}>
+                Edit
+              </Button>
+              <Button variant="secondary" onClick={() => setDialog('delete')}>
+                Delete
+              </Button>
+              <Button variant="secondary" onClick={() => setDialog('device')}>
+                {site.data.device_id ? 'Change device' : 'Pair device'}
+              </Button>
+            </>
           ) : null
         }
       />
@@ -84,7 +130,13 @@ export function SitePage() {
         ))}
       </nav>
       <Outlet context={context} />
-      {canManage && <DeviceDialog site={site.data} open={deviceOpen} onClose={() => setDeviceOpen(false)} />}
+      {canManage && (
+        <>
+          <DeviceDialog site={site.data} open={dialog === 'device'} onClose={closeDialog} />
+          <EditSiteDialog site={site.data} open={dialog === 'edit'} onClose={closeDialog} />
+          <DeleteSiteDialog site={site.data} open={dialog === 'delete'} onClose={closeDialog} />
+        </>
+      )}
     </>
   )
 }
