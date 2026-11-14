@@ -11,13 +11,14 @@ export type AssumptionsForm = {
   afa_rate_rm_per_kwh: string
 }
 
-/** Backend defaults from docs/FRONTEND.md. system_kwp blank = auto-size. */
+/** Backend defaults from docs/FRONTEND.md. system_kwp blank = auto-size;
+ * export_rate_rm_per_kwh blank = Solar ATAP. */
 export const DEFAULT_FORM: AssumptionsForm = {
   system_kwp: '',
   cost_per_kwp_rm: '4000',
   self_consumption_pct: '60',
   performance_pct: '80',
-  export_rate_rm_per_kwh: '0',
+  export_rate_rm_per_kwh: '',
   panel_wp: '550',
   afa_rate_rm_per_kwh: '0',
 }
@@ -43,7 +44,8 @@ export function parseAssumptions(form: AssumptionsForm): { params: FeasibilityPa
   if (!(cost > 0)) errors.cost_per_kwp_rm = 'Must be more than 0.'
   if (!(selfPct >= 0 && selfPct <= 100)) errors.self_consumption_pct = 'Between 0 and 100%.'
   if (!(perfPct > 0 && perfPct <= 100)) errors.performance_pct = 'Between 1 and 100%.'
-  if (!(exportRate >= 0)) errors.export_rate_rm_per_kwh = 'Zero or more.'
+  if (form.export_rate_rm_per_kwh.trim() !== '' && !(exportRate >= 0))
+    errors.export_rate_rm_per_kwh = 'Zero or more, or blank for Solar ATAP.'
   if (!(panel > 0)) errors.panel_wp = 'Must be more than 0.'
   if (!Number.isFinite(afa)) errors.afa_rate_rm_per_kwh = 'Enter a number (can be negative).'
 
@@ -52,10 +54,10 @@ export function parseAssumptions(form: AssumptionsForm): { params: FeasibilityPa
     cost_per_kwp_rm: cost,
     self_consumption_ratio: selfPct / 100,
     performance_ratio: perfPct / 100,
-    export_rate_rm_per_kwh: exportRate,
     panel_wp: panel,
     afa_rate_rm_per_kwh: afa,
   }
   if (form.system_kwp.trim() !== '') params.system_kwp = kwp
+  if (form.export_rate_rm_per_kwh.trim() !== '') params.export_rate_rm_per_kwh = exportRate
   return { params, errors }
 }

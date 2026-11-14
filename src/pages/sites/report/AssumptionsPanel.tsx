@@ -12,7 +12,7 @@ const FIELDS: Field[] = [
   { key: 'panel_wp', label: 'Panel size (W)', step: '5' },
   { key: 'self_consumption_pct', label: 'Self-consumption (%)', hint: 'Share of solar used on site', step: '1' },
   { key: 'performance_pct', label: 'Performance ratio (%)', hint: 'After system losses', step: '1' },
-  { key: 'export_rate_rm_per_kwh', label: 'Export credit (RM/kWh)', hint: '0 = conservative', step: '0.01' },
+  { key: 'export_rate_rm_per_kwh', label: 'Export credit (RM/kWh)', hint: 'Blank = Solar ATAP (27.03 sen/kWh, up to grid use). 0 = no credit', step: '0.01' },
   { key: 'afa_rate_rm_per_kwh', label: 'AFA rate (RM/kWh)', hint: 'TNB monthly fuel adjustment', step: '0.01' },
 ]
 

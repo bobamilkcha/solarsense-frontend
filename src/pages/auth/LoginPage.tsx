@@ -33,7 +33,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Sign in to SolarSense" subtitle="Solar site assessment for installers">
+    <AuthLayout title="SolarSense" subtitle="Solar site assessment for installers">
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         {loginMutation.isError && <Alert tone="error">{loginErrorMessage(loginMutation.error)}</Alert>}
         <TextField

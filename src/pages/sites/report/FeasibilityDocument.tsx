@@ -2,7 +2,7 @@ import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { FeasibilityReport } from '../../../api/types'
 import { formatDateTime, formatNumber, formatRM } from '../../../lib/format'
 import { MONTH_NAMES } from '../../../lib/months'
-import { DISCLAIMER, shadingSourceLabel } from './reportCopy'
+import { DISCLAIMER, exportCreditLabel, shadingSourceLabel } from './reportCopy'
 
 // Built-in Helvetica covers the WinAnsi range only, so the copy sticks to plain characters.
 const s = StyleSheet.create({
@@ -124,7 +124,7 @@ export function FeasibilityDocument({ report: r, meta }: { report: FeasibilityRe
             <KV k="Installed cost" v={`${formatRM(a.cost_per_kwp_rm, 0)} per kWp`} />
             <KV k="Self-consumption" v={pct(a.self_consumption_ratio)} />
             <KV k="Performance ratio" v={pct(a.performance_ratio)} />
-            <KV k="Export credit" v={`RM ${formatNumber(a.export_rate_rm_per_kwh, 3)}/kWh`} />
+            <KV k="Export credit" v={exportCreditLabel(r.export_credit)} />
             <KV k="AFA rate" v={`RM ${formatNumber(a.afa_rate_rm_per_kwh, 3)}/kWh`} />
           </View>
         </View>

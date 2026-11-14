@@ -5,7 +5,7 @@ import { StatTile } from '../../../components/StatTile'
 import { Alert } from '../../../components/ui/Alert'
 import { formatNumber, formatRM } from '../../../lib/format'
 import { MONTH_NAMES } from '../../../lib/months'
-import { DISCLAIMER, shadingSourceLabel } from './reportCopy'
+import { DISCLAIMER, exportCreditLabel, shadingSourceLabel } from './reportCopy'
 
 function ShadingNote({ shading }: { shading: FeasibilityReport['shading'] }) {
   if (shading.source === 'device') {
@@ -75,7 +75,7 @@ export function ReportView({ report: r }: { report: FeasibilityReport }) {
           detail={`${r.panel_count} panels × ${formatNumber(r.assumptions.panel_wp, 0)} W`}
         />
         <StatTile label="System cost" value={formatRM(r.system_cost_rm, 0)} />
-        <StatTile label="Annual savings" value={formatRM(r.annual_savings_rm, 0)} />
+        <StatTile label="Annual savings" value={formatRM(r.annual_savings_rm, 0)} detail={exportCreditLabel(r.export_credit)} />
         <StatTile
           label="Payback"
           value={r.payback_years === null ? 'No payback' : formatNumber(r.payback_years, 1)}

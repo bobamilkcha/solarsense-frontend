@@ -596,10 +596,9 @@ export interface components {
             self_consumption_ratio: number;
             /**
              * Export Rate Rm Per Kwh
-             * @description Credit for exported energy; 0 = conservative
-             * @default 0
+             * @description Flat credit for every exported kWh. Omit for Solar ATAP: domestic exports credited at the energy charge, up to that month's grid import
              */
-            export_rate_rm_per_kwh: number;
+            export_rate_rm_per_kwh?: number | null;
             /**
              * Cost Per Kwp Rm
              * @default 4000
@@ -811,6 +810,18 @@ export interface components {
              */
             readonly signal: "good" | "fair" | "weak" | "unknown";
         };
+        /** ExportCreditSummary */
+        ExportCreditSummary: {
+            /**
+             * Scheme
+             * @enum {string}
+             */
+            scheme: "solar_atap" | "flat_rate";
+            /** Rate Rm Per Kwh */
+            rate_rm_per_kwh: number;
+            /** Capped At Grid Import */
+            capped_at_grid_import: boolean;
+        };
         /** FeasibilityReport */
         FeasibilityReport: {
             /**
@@ -826,6 +837,7 @@ export interface components {
             location_lng: number;
             consumption: components["schemas"]["ConsumptionSummary"];
             shading: components["schemas"]["ShadingSummary"];
+            export_credit: components["schemas"]["ExportCreditSummary"];
             /** System Kwp */
             system_kwp: number;
             /** Panel Count */
@@ -2203,8 +2215,8 @@ export interface operations {
                 system_kwp?: number | null;
                 performance_ratio?: number;
                 self_consumption_ratio?: number;
-                /** @description Credit for exported energy; 0 = conservative */
-                export_rate_rm_per_kwh?: number;
+                /** @description Flat credit for every exported kWh. Omit for Solar ATAP: domestic exports credited at the energy charge, up to that month's grid import */
+                export_rate_rm_per_kwh?: number | null;
                 cost_per_kwp_rm?: number;
                 panel_wp?: number;
                 /** @description TNB fuel adjustment (AFA), changes monthly */
@@ -2245,8 +2257,8 @@ export interface operations {
                 system_kwp?: number | null;
                 performance_ratio?: number;
                 self_consumption_ratio?: number;
-                /** @description Credit for exported energy; 0 = conservative */
-                export_rate_rm_per_kwh?: number;
+                /** @description Flat credit for every exported kWh. Omit for Solar ATAP: domestic exports credited at the energy charge, up to that month's grid import */
+                export_rate_rm_per_kwh?: number | null;
                 cost_per_kwp_rm?: number;
                 panel_wp?: number;
                 /** @description TNB fuel adjustment (AFA), changes monthly */
