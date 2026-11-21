@@ -15,16 +15,19 @@ export function LoadingState({ label = 'Loading…' }: { label?: string }) {
 export function ErrorState({
   error,
   title = "Couldn't load this",
+  message,
   onRetry,
 }: {
   error: unknown
   title?: string
+  /** Overrides the message derived from `error`. */
+  message?: string
   onRetry?: () => void
 }) {
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-10 text-center" role="alert">
       <p className="font-medium text-red-800">{title}</p>
-      <p className="mt-1 text-sm text-red-700">{getErrorMessage(error)}</p>
+      <p className="mt-1 text-sm text-red-700">{message ?? getErrorMessage(error)}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" className="mt-4" onClick={onRetry}>
           Try again

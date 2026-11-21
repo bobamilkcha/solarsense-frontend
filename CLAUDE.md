@@ -71,8 +71,7 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   (Project/site edit and delete added in Phase 12.)
 - Phase 3 done: Live Data tab (latest cards, polled charts, stale-device
   warning) and History tab (date range, bucketed charts, CSV/Excel export).
-  History pages through /readings (no date filter in API), capped at 20k
-  readings with a warning. Gaps in data break chart lines.
+  Gaps in data break chart lines. (History moved to /readings/series in Phase 13.)
 - Phase 4 done: TNB Bill tab (multi-PDF upload, parsed fields with
   "couldn't read" for nulls, avg kWh, tariff, monthly kWh chart, view PDF).
   No bill delete: no backend endpoint.
@@ -113,4 +112,11 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   Editing a site's location warns that benchmark/report results change.
   Deleting a site also clears its localStorage survey spots. Shared SiteForm
   for add/edit site.
+- Phase 13 done: History tab uses GET /sites/:id/readings/series (one request
+  per range, +08:00 midnights, backend picks bucket_s). Lines are bucket
+  averages, air temp/humidity show a min-max band, tooltips show range/peak.
+  Tiles come from `summary`; peak cell temp = max over buckets of
+  ambient_temp_avg + irradiance_max_wm2. Missing buckets (gap > bucket_s)
+  break the line. 20k paging and its warning removed. Live Data unchanged
+  (/readings, polled; its 7-day zoom still pages /readings).
 - Not yet verified in a browser or against the real backend.

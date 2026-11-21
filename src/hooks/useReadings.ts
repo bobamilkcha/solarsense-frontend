@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
-import { listReadings, listReadingsInRange } from '../api/readings'
+import { getReadingSeries, listReadings, listReadingsInRange } from '../api/readings'
 import type { SensorReading } from '../api/types'
 import { LIVE_POLL_INTERVAL_MS } from '../config'
 import { queryKeys } from './queryKeys'
@@ -57,19 +57,24 @@ export function useLiveWeek(siteId: string, enabled: boolean) {
   })
   return useQuery({
     queryKey: [...queryKeys.readings(siteId), 'week', start.toISOString()],
-    queryFn: ({ signal }) => listReadingsInRange(siteId, start, end, HISTORY_MAX_PAGES, signal),
+    queryFn: ({ signal }) => listReadingsInRange(siteId, start, end, LIVE_WEEK_MAX_PAGES, signal),
     enabled,
     staleTime: 5 * 60_000,
   })
 }
 
 /** Each page is 1000 readings; 20 pages covers several days of frequent data. */
-export const HISTORY_MAX_PAGES = 20
+const LIVE_WEEK_MAX_PAGES = 20
 
-export function useReadingsInRange(siteId: string, start: Date, end: Date) {
+/**
+ * Bucketed readings for the History tab: one request per date range. `start`
+ * and `end` are ISO strings with a +08:00 offset (end exclusive).
+ */
+export function useReadingSeries(siteId: string, start: string, end: string, enabled: boolean) {
   return useQuery({
-    queryKey: [...queryKeys.readings(siteId), 'range', start.toISOString(), end.toISOString()],
-    queryFn: ({ signal }) => listReadingsInRange(siteId, start, end, HISTORY_MAX_PAGES, signal),
+    queryKey: [...queryKeys.readings(siteId), 'series', start, end],
+    queryFn: ({ signal }) => getReadingSeries(siteId, start, end, signal),
+    enabled,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
   })

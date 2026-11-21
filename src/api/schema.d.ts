@@ -241,6 +241,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sites/{site_id}/readings/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reading Series
+         * @description Readings averaged into time buckets plus exact range totals, for history charts.
+         */
+        get: operations["reading_series_sites__site_id__readings_series_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sites/{site_id}/readings/export": {
         parameters: {
             query?: never;
@@ -1032,6 +1052,92 @@ export interface components {
             name?: string | null;
             /** Description */
             description?: string | null;
+        };
+        /**
+         * ReadingBucket
+         * @description Readings averaged over one time bucket. Buckets with no readings are omitted.
+         */
+        ReadingBucket: {
+            /**
+             * Bucket Start
+             * Format: date-time
+             * @description Start of the bucket (inclusive)
+             */
+            bucket_start: string;
+            /**
+             * Count
+             * @description Readings in this bucket
+             */
+            count: number;
+            /** Irradiance Avg Wm2 */
+            irradiance_avg_wm2: number;
+            /** Irradiance Max Wm2 */
+            irradiance_max_wm2: number;
+            /** Cell Voltage Avg */
+            cell_voltage_avg: number;
+            /** Ambient Temp Avg */
+            ambient_temp_avg: number | null;
+            /** Ambient Temp Min */
+            ambient_temp_min: number | null;
+            /** Ambient Temp Max */
+            ambient_temp_max: number | null;
+            /** Humidity Avg */
+            humidity_avg: number | null;
+            /** Humidity Min */
+            humidity_min: number | null;
+            /** Humidity Max */
+            humidity_max: number | null;
+            /** Tilt Deg Avg */
+            tilt_deg_avg: number | null;
+            /** Rssi Avg */
+            rssi_avg: number | null;
+        };
+        /** ReadingSeriesResponse */
+        ReadingSeriesResponse: {
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Bucket S
+             * @description Bucket width in seconds (chosen automatically if not sent)
+             */
+            bucket_s: number;
+            summary: components["schemas"]["ReadingSeriesSummary"];
+            /** Buckets */
+            buckets: components["schemas"]["ReadingBucket"][];
+        };
+        /**
+         * ReadingSeriesSummary
+         * @description Exact figures over the whole range (not derived from the buckets).
+         */
+        ReadingSeriesSummary: {
+            /** Count */
+            count: number;
+            /** First Reading At */
+            first_reading_at: string | null;
+            /** Last Reading At */
+            last_reading_at: string | null;
+            /** Irradiance Max Wm2 */
+            irradiance_max_wm2: number | null;
+            /** Ambient Temp Avg */
+            ambient_temp_avg: number | null;
+            /** Ambient Temp Min */
+            ambient_temp_min: number | null;
+            /** Ambient Temp Max */
+            ambient_temp_max: number | null;
+            /** Humidity Avg */
+            humidity_avg: number | null;
+            /** Humidity Min */
+            humidity_min: number | null;
+            /** Humidity Max */
+            humidity_max: number | null;
         };
         /** ReportedStatus */
         ReportedStatus: {
@@ -1863,6 +1969,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SensorReadingResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reading_series_sites__site_id__readings_series_get: {
+        parameters: {
+            query: {
+                /** @description Inclusive, ISO 8601 with offset */
+                start: string;
+                /** @description Exclusive, ISO 8601 with offset */
+                end: string;
+                /** @description Bucket width in seconds; omit to pick automatically */
+                bucket_s?: number | null;
+            };
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingSeriesResponse"];
                 };
             };
             /** @description Validation Error */

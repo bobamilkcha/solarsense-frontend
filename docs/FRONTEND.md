@@ -216,6 +216,26 @@ What happens:
   total count is returned.
 - There's no websocket or push. **Poll** for a live view (e.g. every 30–60 s;
   match it to the firmware's send interval).
+- **For history charts use `GET /sites/{id}/readings/series?start=&end=`**
+  (start inclusive, end exclusive, both required, send them with an offset,
+  e.g. `2026-11-15T00:00:00+08:00`). The backend averages readings into time
+  buckets, so any range (a day, 7 days, 30 days) comes back in one request
+  with no 20,000-reading cap. Response:
+  - `bucket_s`: bucket width in seconds. Picked automatically (1 min for a
+    few hours, 5 min for a day, 15 min for 7 days, 1 h for 30 days) unless you
+    send `bucket_s` (60–86400). 422 if the range would need more than 5000
+    buckets.
+  - `buckets[]`: `bucket_start`, `count`, `irradiance_avg_wm2`,
+    `irradiance_max_wm2`, `cell_voltage_avg`, `ambient_temp_avg/min/max`,
+    `humidity_avg/min/max`, `tilt_deg_avg`, `rssi_avg`. Buckets are aligned to
+    `start` (send local midnight for buckets on Malaysian day boundaries).
+    **Empty buckets are left out**: when the gap between two `bucket_start`s
+    is more than `bucket_s`, the device was offline, so break the line there
+    instead of joining across it.
+  - `summary`: exact figures over the whole range for the stat tiles:
+    `count`, `first_reading_at`, `last_reading_at`, `irradiance_max_wm2`,
+    `ambient_temp_avg/min/max`, `humidity_avg/min/max`. Fields are `null` when
+    there are no readings.
 - `GET /sites/{id}/readings/export?format=csv|xlsx&start=&end=` downloads a
   file (start inclusive, end exclusive). Send it with the Bearer header and
   save the blob; a plain `<a href>` won't carry the token.
@@ -254,7 +274,7 @@ tweak assumptions:
 | `system_kwp` | auto-sized to cover yearly usage | system size |
 | `cost_per_kwp_rm` | 4000 | installed cost |
 | `self_consumption_ratio` | 0.6 | share of solar output used on-site |
-| `export_rate_rm_per_kwh` | 0 | credit for power exported to the grid |
+| `export_rate_rm_per_kwh` | omitted = Solar ATAP | flat credit (RM) for every exported kWh; omit for Solar ATAP |
 | `performance_ratio` | 0.8 | system losses |
 | `panel_wp` | 550 | panel size in watts |
 | `afa_rate_rm_per_kwh` | 0 | TNB monthly fuel adjustment |
@@ -268,7 +288,14 @@ Response highlights:
   bar chart of the bill with and without solar.
 - `shading.source`: `"device"` (measured) or `"satellite_only"` (no full
   device days yet, so no shading adjustment). Say which one in the UI.
-- `assumptions`: the values actually used (echoes the auto-sized `system_kwp`)
+- `export_credit`: how exports were credited. `scheme` is `"solar_atap"`
+  (domestic default: `rate_rm_per_kwh` 0.2703, the energy charge, and
+  `capped_at_grid_import` true, so only exported kWh up to that month's grid
+  use earn credit) or `"flat_rate"` (the rate sent, on every exported kWh).
+  Non-domestic sites under ATAP get `flat_rate` at 0, because ATAP's
+  non-domestic rate isn't modelled. Show the scheme next to the savings.
+- `assumptions`: the values actually used (echoes the auto-sized `system_kwp`;
+  `export_rate_rm_per_kwh` stays `null` under Solar ATAP)
 - `site_name`, `location_lat/lng`: for report headers
 
 **PDF export is the frontend's job** (e.g. `@react-pdf/renderer`), built from
@@ -331,8 +358,6 @@ invalidates the old link. An invalid token returns 400.
 
 - No `GET` for a single project or site. Use the list endpoints and filter.
 - No editing or deleting bills.
-- No readings aggregation (hourly or daily averages). Charts must use raw
-  readings (max 1000 per request).
 - No pagination totals on the readings list.
 - No websocket or live push. Poll instead.
 - No photo uploads on visits.

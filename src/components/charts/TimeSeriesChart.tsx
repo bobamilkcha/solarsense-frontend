@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { formatDate, formatDateTime, formatNumber, formatTime } from '../../lib/format'
 import type { SeriesPoint } from '../../lib/timeseries'
@@ -21,6 +21,8 @@ type TimeSeriesChartProps = {
   onZoom?: (from: number, to: number) => void
   /** Draws the reference line(s) and colors the line by how good each value is. */
   benchmark?: ChartBenchmark
+  /** Width of each point's time bucket, when points are averages (History); shown in the tooltip. */
+  bucketMs?: number
 }
 
 // Plot area insets: the Y axis width and the chart's right margin, used to map the cursor to a time.
@@ -29,6 +31,12 @@ const RIGHT_MARGIN = 12
 const WHEEL_ZOOM_STEP = 1.25
 
 const DAY_MS = 24 * 60 * 60 * 1000
+
+const BAND_COLOR = '#cbd5e1'
+const PEAK_COLOR = '#64748b'
+
+/** [min, max] for the shaded band; null leaves a gap. */
+const bandRange = (p: SeriesPoint) => (p.min != null && p.max != null ? [p.min, p.max] : null)
 
 export function TimeSeriesChart({
   points,
@@ -40,6 +48,7 @@ export function TimeSeriesChart({
   color = SERIES[1],
   onZoom,
   benchmark,
+  bucketMs,
 }: TimeSeriesChartProps) {
   const gradientId = useId()
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
@@ -91,13 +100,17 @@ export function TimeSeriesChart({
   function renderTooltip({ active, payload }: TooltipContentProps) {
     const point = payload?.[0]?.payload as SeriesPoint | undefined
     if (!active || !point || point.value === null) return null
-    return (
-      <ChartTooltipBox
-        title={formatDateTime(point.t)}
-        rows={[{ color, label, value: `${formatNumber(point.value, decimals)} ${unit}` }]}
-      />
-    )
+    const fmt = (v: number) => `${formatNumber(v, decimals)} ${unit}`
+    const rows = [{ color, label: bucketMs ? `${label} (avg)` : label, value: fmt(point.value) }]
+    if (point.min != null && point.max != null) {
+      rows.push({ color: BAND_COLOR, label: 'Range', value: `${formatNumber(point.min, decimals)} – ${fmt(point.max)}` })
+    }
+    if (point.peak != null) rows.push({ color: PEAK_COLOR, label: 'Peak', value: fmt(point.peak) })
+    const title = bucketMs ? `${formatDateTime(point.t)} – ${formatTime(point.t + bucketMs)}` : formatDateTime(point.t)
+    return <ChartTooltipBox title={title} rows={rows} />
   }
+
+  const hasBand = useMemo(() => points.some((p) => p.min != null && p.max != null), [points])
 
   const extent = useMemo(() => {
     let min = Infinity
@@ -126,7 +139,7 @@ export function TimeSeriesChart({
   return (
     <div ref={containerRef} style={{ height }} className={onZoom ? 'w-full cursor-crosshair select-none' : 'w-full'}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <ComposedChart
           data={points}
           margin={{ top: 8, right: RIGHT_MARGIN, bottom: 0, left: 0 }}
           onMouseDown={(e) => {
@@ -187,6 +200,18 @@ export function TimeSeriesChart({
               label={{ value: benchmark.reference.label, position: 'insideTopRight', fill: '#a16207', fontSize: 11 }}
             />
           )}
+          {hasBand && (
+            <Area
+              dataKey={bandRange}
+              stroke="none"
+              fill={BAND_COLOR}
+              fillOpacity={0.5}
+              connectNulls={false}
+              isAnimationActive={false}
+              activeDot={false}
+              legendType="none"
+            />
+          )}
           <Tooltip content={renderTooltip} cursor={{ stroke: CHART.crosshair, strokeWidth: 1 }} isAnimationActive={false} />
           <Line
             type="monotone"
@@ -204,7 +229,7 @@ export function TimeSeriesChart({
             connectNulls={false}
             isAnimationActive={false}
           />
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   )

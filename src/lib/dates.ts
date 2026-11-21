@@ -12,9 +12,14 @@ export function toLocalDateString(date: Date): string {
   return isoDateFormat.format(date)
 }
 
+/** "2026-11-15T00:00:00+08:00": Malaysian midnight at the start of a calendar date, as ISO 8601 with offset. */
+export function localMidnightIso(dateString: string): string {
+  return `${dateString}T00:00:00+08:00`
+}
+
 /** Midnight at the start of a Malaysian calendar date (UTC+8, no DST). */
 export function startOfLocalDate(dateString: string): Date {
-  return new Date(`${dateString}T00:00:00+08:00`)
+  return new Date(localMidnightIso(dateString))
 }
 
 export function addDays(dateString: string, days: number): string {

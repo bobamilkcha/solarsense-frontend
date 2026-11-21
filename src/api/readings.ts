@@ -1,6 +1,6 @@
 import { api } from './client'
 import { downloadFile } from './download'
-import type { SensorReading } from './types'
+import type { ReadingSeries, SensorReading } from './types'
 
 export const READINGS_PAGE_LIMIT = 1000
 
@@ -49,6 +49,19 @@ export async function listReadingsInRange(
     if (reachedEnd || pastStart) return { readings: collected, truncated: false }
   }
   return { readings: collected, truncated: true }
+}
+
+/**
+ * Readings averaged into time buckets for [start, end), plus exact totals over
+ * the range. Send start/end as ISO strings with a +08:00 offset; the backend
+ * picks the bucket width (at most about 1000 buckets) and leaves empty buckets out.
+ */
+export async function getReadingSeries(siteId: string, start: string, end: string, signal?: AbortSignal): Promise<ReadingSeries> {
+  const { data } = await api.get<ReadingSeries>(`/sites/${encodeURIComponent(siteId)}/readings/series`, {
+    params: { start, end },
+    signal,
+  })
+  return data
 }
 
 export type ExportFormat = 'csv' | 'xlsx'

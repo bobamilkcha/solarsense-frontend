@@ -22,6 +22,8 @@ export type SiteCreateRequest = Schemas['SiteCreateRequest']
 export type SiteUpdateRequest = Schemas['SiteUpdateRequest']
 
 export type SensorReading = Schemas['SensorReadingResponse']
+export type ReadingSeries = Schemas['ReadingSeriesResponse']
+export type ReadingBucket = Schemas['ReadingBucket']
 export type Benchmark = Schemas['BenchmarkResponse']
 export type TNBBill = Schemas['TNBBillResponse']
 export type FeasibilityReport = Schemas['FeasibilityReport']

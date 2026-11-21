@@ -5,7 +5,15 @@ export type NumericField = 'irradiance_wm2' | 'ambient_temp' | 'humidity' | 'hea
 /** A reading field, or a value derived from a reading (e.g. estimated cell temperature). */
 export type SeriesField = NumericField | ((reading: SensorReading) => number | null)
 
-export type SeriesPoint = { t: number; value: number | null }
+export type SeriesPoint = {
+  t: number
+  value: number | null
+  /** Optional range within the point's time bucket, drawn as a shaded band. */
+  min?: number | null
+  max?: number | null
+  /** Optional highest value within the bucket, shown in the tooltip. */
+  peak?: number | null
+}
 
 function valueOf(reading: SensorReading, field: SeriesField): number | null {
   return typeof field === 'function' ? field(reading) : reading[field]
@@ -75,51 +83,6 @@ export function toIntervalSeries(
     previous = t
   }
   return points
-}
-
-/**
- * Average readings into fixed time buckets for long ranges. Empty buckets
- * become null, which breaks the line, so gaps in the data stay visible.
- */
-export function toBucketedSeries(
-  sorted: SensorReading[],
-  field: SeriesField,
-  startMs: number,
-  endMs: number,
-  bucketCount = 500,
-): SeriesPoint[] {
-  if (sorted.length <= bucketCount) return toSeriesWithGaps(sorted, field)
-  const size = Math.max(1, (endMs - startMs) / bucketCount)
-  const sums = new Array<number>(bucketCount).fill(0)
-  const counts = new Array<number>(bucketCount).fill(0)
-  for (const reading of sorted) {
-    const value = valueOf(reading, field)
-    if (value === null) continue
-    const index = Math.min(bucketCount - 1, Math.floor((Date.parse(reading.device_timestamp) - startMs) / size))
-    if (index < 0) continue
-    sums[index] += value
-    counts[index] += 1
-  }
-  return sums.map((sum, i) => ({
-    t: Math.round(startMs + (i + 0.5) * size),
-    value: counts[i] ? sum / counts[i] : null,
-  }))
-}
-
-export function summarize(sorted: SensorReading[], field: SeriesField) {
-  let min = Infinity
-  let max = -Infinity
-  let sum = 0
-  let count = 0
-  for (const r of sorted) {
-    const v = valueOf(r, field)
-    if (v === null) continue
-    min = Math.min(min, v)
-    max = Math.max(max, v)
-    sum += v
-    count += 1
-  }
-  return count === 0 ? null : { min, max, avg: sum / count }
 }
 
 const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
