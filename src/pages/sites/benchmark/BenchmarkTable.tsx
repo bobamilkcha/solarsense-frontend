@@ -24,14 +24,17 @@ export function BenchmarkTable({ benchmark: b }: { benchmark: Benchmark }) {
           <Row label="Device: average daily irradiation" value={formatNumber(b.device_avg_daily_irradiation_kwh_m2, 2)} unit="kWh/m²/day" />
           <Row label="Satellite: average daily irradiation" value={formatNumber(b.satellite_avg_daily_irradiation_kwh_m2, 2)} unit="kWh/m²/day" />
           <Row label="Satellite: monthly irradiation" value={formatNumber(b.satellite_avg_monthly_irradiation_kwh_m2, 1)} unit="kWh/m²" />
-          <Row label="Device-to-satellite ratio" value={formatNumber(b.device_to_satellite_ratio, 2)} />
+          <Row label="Ratio, weather-corrected (same hours)" value={formatNumber(b.same_day?.ratio ?? null, 2)} />
+          <Row label="Ratio, vs long-term average" value={formatNumber(b.device_to_satellite_ratio, 2)} />
+          <Row label="Same-hour comparison: hours / days" value={b.same_day ? `${b.same_day.hours} / ${b.same_day.days}` : '—'} />
           <Row label="Device: average irradiance" value={formatNumber(b.device_avg_irradiance_wm2, 0)} unit="W/m²" />
           <Row label="Device: complete days" value={String(b.device_complete_days)} />
           <Row label="Device: readings this month" value={b.device_reading_count.toLocaleString()} />
           <Row label="Device: average cell voltage" value={formatNumber(b.device_avg_cell_voltage, 3)} unit="V" />
           <Row label="Device: average cell current" value={formatNumber(b.device_avg_cell_current, 4)} unit="A" />
           <Row label="Reference cell Isc" value={formatNumber(b.reference_cell_isc_a, 4)} unit="A" />
-          <Row label="Satellite source" value={b.satellite_source} />
+          <Row label="Satellite source (long-term)" value={b.satellite_source} />
+          <Row label="Satellite source (same hours)" value={b.same_day?.source ?? '—'} />
         </tbody>
       </table>
     </div>

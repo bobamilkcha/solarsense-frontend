@@ -119,4 +119,9 @@ Recharts, Tailwind CSS. Don't add other major libraries without asking.
   ambient_temp_avg + irradiance_max_wm2. Missing buckets (gap > bucket_s)
   break the line. 20k paging and its warning removed. Live Data unchanged
   (/readings, polled; its 7-day zoom still pages /readings).
+- Phase 14 done: Benchmark headline prefers `same_day.ratio` (device vs
+  Open-Meteo satellite for the same hours, weather-corrected), with the
+  long-term PVGIS ratio as secondary text and fallback. TimeOfDayCard shows
+  morning/midday/afternoon device vs satellite and per-period ratios. Table,
+  12-month view and report shading note/PDF know `device_same_day`.
 - Not yet verified in a browser or against the real backend.

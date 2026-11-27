@@ -11,6 +11,7 @@ import { MONTH_LONG_NAMES, currentMonth } from '../../../lib/months'
 import { useSiteContext } from '../siteContext'
 import { BenchmarkTable } from './BenchmarkTable'
 import { RatioHeadline } from './RatioHeadline'
+import { TimeOfDayCard } from './TimeOfDayCard'
 import { YearComparison } from './YearComparison'
 
 export function BenchmarkTab() {
@@ -46,6 +47,7 @@ export function BenchmarkTab() {
       ) : (
         <>
           <RatioHeadline benchmark={benchmark.data} />
+          {benchmark.data.same_day && <TimeOfDayCard sameDay={benchmark.data.same_day} />}
           <div className="grid gap-5 lg:grid-cols-2">
             <ChartCard title={`Average daily irradiation, ${MONTH_LONG_NAMES[month - 1]}`} subtitle="kWh/m² per day">
               {benchmark.data.device_avg_daily_irradiation_kwh_m2 === null && (
@@ -67,7 +69,8 @@ export function BenchmarkTab() {
           </div>
           <p className="text-xs text-slate-500">
             Device irradiance calibration is still approximate, so treat small differences with care. Satellite data:{' '}
-            {benchmark.data.satellite_source}.
+            {benchmark.data.satellite_source} (long-term)
+            {benchmark.data.same_day ? `, ${benchmark.data.same_day.source} (same hours)` : ''}.
           </p>
         </>
       )}

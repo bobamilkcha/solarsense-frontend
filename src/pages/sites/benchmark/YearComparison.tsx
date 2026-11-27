@@ -34,6 +34,7 @@ export function YearComparison({ siteId, enabled, onEnable }: { siteId: string; 
     device: r.data?.device_avg_daily_irradiation_kwh_m2 ?? null,
     satellite: r.data?.satellite_avg_daily_irradiation_kwh_m2 ?? null,
     ratio: r.data?.device_to_satellite_ratio ?? null,
+    sameDayRatio: r.data?.same_day?.ratio ?? null,
   }))
 
   return (
@@ -64,7 +65,13 @@ export function YearComparison({ siteId, enabled, onEnable }: { siteId: string; 
               </thead>
               <tbody className="text-slate-700">
                 <tr>
-                  <th scope="row" className="py-1 pr-3 text-left font-normal text-slate-500">Ratio</th>
+                  <th scope="row" className="py-1 pr-3 text-left font-normal text-slate-500">Weather-corrected ratio</th>
+                  {data.map((d) => (
+                    <td key={d.category} className="px-1.5 py-1">{formatNumber(d.sameDayRatio, 2)}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row" className="py-1 pr-3 text-left font-normal text-slate-500">Long-term ratio</th>
                   {data.map((d) => (
                     <td key={d.category} className="px-1.5 py-1">{formatNumber(d.ratio, 2)}</td>
                   ))}

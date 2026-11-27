@@ -114,7 +114,7 @@ export function FeasibilityDocument({ report: r, meta }: { report: FeasibilityRe
             <KV k="Shading data" v={shadingSourceLabel(r.shading.source)} />
             <KV k="Measured sunlight ratio" v={r.shading.measured_ratio === null ? 'n/a' : formatNumber(r.shading.measured_ratio, 2)} />
             <KV k="Shading factor applied" v={formatNumber(r.shading.applied_factor, 2)} />
-            <KV k="Complete days measured" v={String(r.shading.complete_days)} />
+            <KV k="Days measured" v={String(r.shading.complete_days)} />
           </View>
           <View style={s.column}>
             <Text style={s.h2}>Bills and assumptions</Text>

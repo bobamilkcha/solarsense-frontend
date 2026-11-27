@@ -689,6 +689,8 @@ export interface components {
             reference_cell_isc_a: number;
             /** Satellite Source */
             satellite_source: string;
+            /** @description Device vs satellite for the same hours (weather-corrected). Null when no hour could be matched or the satellite service is unreachable. */
+            same_day: components["schemas"]["SameDayBenchmark"] | null;
         };
         /** Body_upload_bill_sites__site_id__bills_post */
         Body_upload_bill_sites__site_id__bills_post: {
@@ -1160,6 +1162,69 @@ export interface components {
              */
             last_seen_at: string;
         };
+        /**
+         * SameDayBenchmark
+         * @description Device vs satellite irradiance for the SAME hours, so weather cancels out.
+         *
+         *     Only daylight clock hours (07:00-19:00) the device covered almost fully are
+         *     used, each compared with the satellite's figure for that hour. ~1.0 means
+         *     no shading; well below 1.0 means local shading. `periods` shows when in the
+         *     day it happens.
+         */
+        SameDayBenchmark: {
+            /**
+             * Ratio
+             * @description device / satellite; null if too little data
+             */
+            ratio: number | null;
+            /**
+             * Days
+             * @description Days with at least one matched hour
+             */
+            days: number;
+            /**
+             * Hours
+             * @description Matched device hours
+             */
+            hours: number;
+            /** Device Kwh M2 */
+            device_kwh_m2: number;
+            /** Satellite Kwh M2 */
+            satellite_kwh_m2: number;
+            /** Periods */
+            periods: components["schemas"]["SameDayPeriod"][];
+            /** Source */
+            source: string;
+        };
+        /**
+         * SameDayPeriod
+         * @description Device vs satellite for one part of the day (local hours [start_hour, end_hour)).
+         */
+        SameDayPeriod: {
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "morning" | "midday" | "afternoon";
+            /** Start Hour */
+            start_hour: number;
+            /** End Hour */
+            end_hour: number;
+            /**
+             * Hours
+             * @description Matched device hours in this period
+             */
+            hours: number;
+            /** Device Kwh M2 */
+            device_kwh_m2: number;
+            /** Satellite Kwh M2 */
+            satellite_kwh_m2: number;
+            /**
+             * Ratio
+             * @description device / satellite; null if too little data
+             */
+            ratio: number | null;
+        };
         /** SensorReadingResponse */
         SensorReadingResponse: {
             /**
@@ -1218,7 +1283,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "device" | "satellite_only";
+            source: "device_same_day" | "device" | "satellite_only";
             /** Complete Days */
             complete_days: number;
             /** Measured Ratio */

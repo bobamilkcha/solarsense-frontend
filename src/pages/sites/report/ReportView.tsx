@@ -8,6 +8,16 @@ import { MONTH_NAMES } from '../../../lib/months'
 import { DISCLAIMER, exportCreditLabel, shadingSourceLabel } from './reportCopy'
 
 function ShadingNote({ shading }: { shading: FeasibilityReport['shading'] }) {
+  if (shading.source === 'device_same_day') {
+    return (
+      <Alert tone="info">
+        Shading measured on site: the device got {formatNumber(shading.measured_ratio, 2)}× the sunlight satellite data
+        shows for the same hours, over {shading.complete_days} {shading.complete_days === 1 ? 'day' : 'days'}. Weather
+        is accounted for, so this reflects local shading. Production is adjusted by a factor of{' '}
+        {formatNumber(shading.applied_factor, 2)}.
+      </Alert>
+    )
+  }
   if (shading.source === 'device') {
     return (
       <Alert tone="info">

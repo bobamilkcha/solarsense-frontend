@@ -14,7 +14,8 @@ export function exportCreditLabel(credit: ExportCredit | undefined): string {
 }
 
 export function shadingSourceLabel(source: string): string {
-  if (source === 'device') return 'Measured on site'
+  if (source === 'device_same_day') return 'Measured on site (weather-corrected)'
+  if (source === 'device') return 'Measured on site (vs long-term average)'
   if (source === 'satellite_only') return 'Satellite only (no shading adjustment)'
   return source
 }
